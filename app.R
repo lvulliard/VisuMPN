@@ -115,12 +115,26 @@ shinyServer <- function(input, output) {
 		return(dataCohortTypes[dataCohortTypes[,2] == input$plotVariable,])
 	})
 
+	# From the co-factor chosen in the drop-down listbox, return info on corresponding field in the cohort data
+	plotCofactorInfo <- reactive({
+		return(dataCohortTypes[dataCohortTypes[,2] == input$plotFactor,])
+	})
+
 	# Histogram of chosen cohort descriptive variables
 	output$histCohort <- renderPlotly({
 		dt = plotVariableInfo()
-		gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, 
-			fill = color.palette$main, bins = input$nbBins) + 
-			xlab(dt[[2]]) + ylab("Counts")
+		if(input$plotFactor == "Nothing"){
+			gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, 
+				fill = color.palette$main, bins = input$nbBins) + 
+				xlab(dt[[2]]) + ylab("Counts")
+		}
+		else{
+			dt2 = plotCofactorInfo()
+			print(dt2)
+			gp1 = ggplot(dataCohort, aes_string(dt[[1]], fill = dt2[[1]])) + 
+				geom_histogram(color = color.palette$second, bins = input$nbBins) + 
+				xlab(dt[[2]]) + ylab("Counts")
+		}
 		margpy1 <- list(l=45, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
