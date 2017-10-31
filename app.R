@@ -99,7 +99,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 						verbatimTextOutput("infoClick") # Display click coordinates
 					),
 					tabPanel(title = "Data",
-						p("Lorem ipsum.")
+						dataTableOutput("histCohortTable")
 					)
 				)
 			)
@@ -150,6 +150,19 @@ shinyServer <- function(input, output) {
 		else{
 			paste0("x=", click_event$x, "\ny=", click_event$y)
 		}
+	})
+
+	# Return table with select data
+	output$histCohortTable <- renderDataTable({
+		dt = plotVariableInfo()
+		colToExport = c(1,dt[[3]])
+		if(input$plotFactor != "Nothing"){
+			dt2 = plotCofactorInfo()
+			colToExport = append(colToExport, dt2[[3]])
+		}
+		tmpframe = data.frame(dataCohort[,colToExport])
+		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+		tmpframe
 	})
 }
 
