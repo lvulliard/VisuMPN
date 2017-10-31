@@ -61,18 +61,35 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 		tabPanel(title = "Clinical data",
 			# Sidebar with plot options
 			sidebarPanel(
-				selectInput(inputId = "plotVariable",
-  				label = "Data to vizualize",
-  				choices = dataCohortTypes[quantitativeVar,2],
-  				selected = 1,
-  				multiple = FALSE
-  				),
-  				selectInput(inputId = "plotFactor",
-  				label = "Factor by",
-  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
-  				selected = 1,
-  				multiple = FALSE
-  				)
+				bsCollapse(
+					bsCollapsePanel("Variables",
+						selectInput(inputId = "plotVariable",
+			  				label = "Data to vizualize",
+			  				choices = dataCohortTypes[quantitativeVar,2],
+			  				selected = 1,
+			  				multiple = FALSE
+		  				),
+		  				selectInput(inputId = "plotFactor",
+			  				label = "Factor by",
+			  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+			  				selected = 1,
+			  				multiple = FALSE
+		  				), 
+		  				style = "primary"
+					),
+					bsCollapsePanel("Graphical parameters",
+						sliderInput(inputId = "nbBins",
+							label = "Number of bins:",
+							min = 1,
+							max = 35, 
+							value = 10
+						), 
+						style = "info"
+					),
+					multiple = TRUE,
+					open = "Variables"
+				)
+				
 			),
 			# Main displaying panel
 			mainPanel(
@@ -101,7 +118,8 @@ shinyServer <- function(input, output) {
 	# Histogram of chosen cohort descriptive variables
 	output$histCohort <- renderPlotly({
 		dt = plotVariableInfo()
-		gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, fill = color.palette$main, bins = 10) + 
+		gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, 
+			fill = color.palette$main, bins = input$nbBins) + 
 			xlab(dt[[2]]) + ylab("Counts")
 		margpy1 <- list(l=45, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
