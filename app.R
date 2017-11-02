@@ -210,6 +210,40 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					id = "ViolCohortTabs"
 				)
 			)
+		),
+		tabPanel(title = "Clinical data - Matrices and pie charts",
+			# Sidebar with plot options
+			sidebarPanel(
+				bsCollapse(
+					bsCollapsePanel("Variables",
+						checkboxGroupInput(inputId = "plotVariablesPie",
+							label = "Data to visualize:",
+                     		choices = dataCohortTypes[quantitativeVar,2],
+                     		selected = dataCohortTypes[quantitativeVar,2]
+						), 
+						style = "primary"
+					),
+					bsCollapsePanel("Graphical parameters", 
+						style = "info"
+					),
+					multiple = TRUE,
+					open = "Variables"
+				)
+				
+			),
+			# Main displaying panel
+			mainPanel(
+				tabsetPanel(
+					tabPanel(title = "Plot",
+						id = "PieCohortPlotTab"
+					),
+					tabPanel(title = "Data",
+						dataTableOutput("pieCohortTable"),
+						id = "PieCohortDataTab"
+					),
+					id = "PieCohortTabs"
+				)
+			)
 		)
 	)
 )
@@ -313,6 +347,13 @@ shinyServer <- function(input, output) {
 		dt = variableInfo(input$plotVariableViolin)()
 		dt2 = variableInfo(input$plotFactorViolin)()
 		colToExport = c(1,dt[[3]],dt2[[3]])
+		tmpframe = data.frame(dataCohort[,colToExport])
+		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+		tmpframe
+	})
+
+	output$pieCohortTable <- renderDataTable({
+		colToExport = c(1,unlist(dataCohortTypes[dataCohortTypes[,2] %in% input$plotVariablesPie,3]))
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
