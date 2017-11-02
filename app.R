@@ -64,18 +64,18 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 				bsCollapse(
 					bsCollapsePanel("Variables",
 						selectInput(inputId = "plotVariable",
-			  				label = "Data to vizualize:",
-			  				choices = dataCohortTypes[quantitativeVar,2],
-			  				selected = 1,
-			  				multiple = FALSE
-		  				),
-		  				selectInput(inputId = "plotFactor",
-			  				label = "Factor by:",
-			  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
-			  				selected = 1,
-			  				multiple = FALSE
-		  				), 
-		  				style = "primary"
+							label = "Data to vizualize:",
+							choices = dataCohortTypes[quantitativeVar,2],
+							selected = 1,
+							multiple = FALSE
+						),
+						selectInput(inputId = "plotFactor",
+							label = "Factor by:",
+							choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+							selected = 1,
+							multiple = FALSE
+						), 
+						style = "primary"
 					),
 					bsCollapsePanel("Graphical parameters",
 						sliderInput(inputId = "nbBins",
@@ -95,7 +95,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
-						plotlyOutput("histCohort"),  
+						plotlyOutput("histCohort"),
 						verbatimTextOutput("infoClick"), # Display click coordinates
 						id = "histCohortPlotTab"
 					),
@@ -115,23 +115,23 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 				bsCollapse(
 					bsCollapsePanel("Variables",
 						selectInput(inputId = "plotVariableX",
-			  				label = "Data on x-axis:",
-			  				choices = dataCohortTypes[quantitativeVar,2],
-			  				selected = 1,
-			  				multiple = FALSE
-		  				),
-		  				selectInput(inputId = "plotVariableY",
-			  				label = "Data on y-axis:",
-			  				choices = dataCohortTypes[quantitativeVar,2],
-			  				selected = 2,
-			  				multiple = FALSE
-		  				),
-		  				selectInput(inputId = "plotVariableCol",
-			  				label = "Color by:",
-			  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
-			  				selected = 1,
-			  				multiple = FALSE
-						),  
+							label = "Data on x-axis:",
+							choices = dataCohortTypes[quantitativeVar,2],
+							selected = 1,
+							multiple = FALSE
+						),
+						selectInput(inputId = "plotVariableY",
+							label = "Data on y-axis:",
+							choices = dataCohortTypes[quantitativeVar,2],
+							selected = "CALR burden",
+							multiple = FALSE
+						),
+						selectInput(inputId = "plotVariableCol",
+							label = "Color by:",
+							choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+							selected = 1,
+							multiple = FALSE
+						),
 						style = "primary"
 					),
 					multiple = TRUE,
@@ -146,6 +146,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 						id = "ScatCohortPlotTab"
 					),
 					tabPanel(title = "Data",
+						dataTableOutput("scatCohortTable"),
 						id = "ScatCohortDataTab"
 					),
 					id = "ScatCohortTabs"
@@ -158,31 +159,21 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 # Define R server
 shinyServer <- function(input, output) {
 
-	# # For a variable chosen in an input of the UI, return info on corresponding field in the cohort data
-	# variableInfo = function(var){
-	# 	return(reactive({dataCohortTypes[dataCohortTypes[,2] == var,]}))
-	# }
-
-	# From the variable chosen in the drop-down listbox, return info on corresponding field in the cohort data
-	plotVariableInfo <- reactive({
-		return(dataCohortTypes[dataCohortTypes[,2] == input$plotVariable,])
-	})
-
-	# From the co-factor chosen in the drop-down listbox, return info on corresponding field in the cohort data
-	plotCofactorInfo <- reactive({
-		return(dataCohortTypes[dataCohortTypes[,2] == input$plotFactor,])
-	})
+	# For a variable chosen in an input of the UI, return info on corresponding field in the cohort data
+	variableInfo = function(var){
+		return(reactive({dataCohortTypes[dataCohortTypes[,2] == var,]}))
+	}
 
 	# Histogram of chosen cohort descriptive variables
 	output$histCohort <- renderPlotly({
-		dt = plotVariableInfo()
+		dt = variableInfo(input$plotVariable)()
 		if(input$plotFactor == "Nothing"){
 			gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, 
 				fill = color.palette$main, bins = input$nbBins) + 
 				xlab(dt[[2]]) + ylab("Counts")
 		}
 		else{
-			dt2 = plotCofactorInfo()
+			dt2 = variableInfo(input$plotFactor)()
 			print(dt2)
 			gp1 = ggplot(dataCohort, aes_string(dt[[1]], fill = dt2[[1]])) + 
 				geom_histogram(color = color.palette$second, bins = input$nbBins) + 
@@ -214,10 +205,10 @@ shinyServer <- function(input, output) {
 
 	# Return table with select data
 	output$histCohortTable <- renderDataTable({
-		dt = plotVariableInfo()
+		dt = variableInfo(input$plotVariable)()
 		colToExport = c(1,dt[[3]])
 		if(input$plotFactor != "Nothing"){
-			dt2 = plotCofactorInfo()
+			dt2 = variableInfo(input$plotFactor)()
 			colToExport = append(colToExport, dt2[[3]])
 		}
 		tmpframe = data.frame(dataCohort[,colToExport])
@@ -226,7 +217,16 @@ shinyServer <- function(input, output) {
 	})
 
 	output$scatCohortTable <- renderDataTable({
-		data.frame(1:5)
+		dt1 = variableInfo(input$plotVariableX)()
+		dt2 = variableInfo(input$plotVariableY)()
+		colToExport = c(1,dt1[[3]], dt2[[3]])
+		if(input$plotVariableCol != "Nothing"){
+			dt3 = variableInfo(input$plotVariableCol)()
+			colToExport = append(colToExport, dt3[[3]])
+		}
+		tmpframe = data.frame(dataCohort[,colToExport])
+		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+		tmpframe
 	})
 }
 
