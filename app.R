@@ -169,7 +169,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 						),
 						selectInput(inputId = "plotFactorViolin",
 							label = "Factor by:",
-							choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+							choices = dataCohortTypes[qualitativeVar,2],
 							selected = 1,
 							multiple = FALSE
 						), 
@@ -184,6 +184,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
+						plotlyOutput("violCohort"),
 						id = "ViolCohortPlotTab"
 					),
 					tabPanel(title = "Data",
@@ -241,7 +242,17 @@ shinyServer <- function(input, output) {
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 
 	})
-	
+
+	# Violin plots of chosen cohort descriptive variables
+	output$violCohort <- renderPlotly({
+		dt = variableInfo(input$plotVariableViolin)()
+		dt2 = variableInfo(input$plotFactorViolin)()
+		gp1 = ggplot(dataCohort, aes_string(dt2[[1]], dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
+			geom_jitter(height = 0, width = 0.05) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
+		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
+		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
+		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+	})
 
 	# Return text with coordinates of the object clicked
 	output$infoClick <- renderText({
@@ -282,11 +293,8 @@ shinyServer <- function(input, output) {
 
 	output$violCohortTable <- renderDataTable({
 		dt = variableInfo(input$plotVariableViolin)()
-		colToExport = c(1,dt[[3]])
-		if(input$plotFactorViolin != "Nothing"){
-			dt2 = variableInfo(input$plotFactorViolin)()
-			colToExport = append(colToExport, dt2[[3]])
-		}
+		dt2 = variableInfo(input$plotFactorViolin)()
+		colToExport = c(1,dt[[3]],dt2[[3]])
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
