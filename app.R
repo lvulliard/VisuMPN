@@ -117,13 +117,13 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 						selectInput(inputId = "plotVariableX",
 							label = "Data on x-axis:",
 							choices = dataCohortTypes[quantitativeVar,2],
-							selected = 1,
+							selected = "Hemoglobine level at diagnosis",
 							multiple = FALSE
 						),
 						selectInput(inputId = "plotVariableY",
 							label = "Data on y-axis:",
 							choices = dataCohortTypes[quantitativeVar,2],
-							selected = "CALR burden",
+							selected = "White blood cell level at diagnosis",
 							multiple = FALSE
 						),
 						selectInput(inputId = "plotVariableCol",
@@ -143,6 +143,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
+						plotlyOutput("scatCohort"),
 						id = "ScatCohortPlotTab"
 					),
 					tabPanel(title = "Data",
@@ -174,7 +175,6 @@ shinyServer <- function(input, output) {
 		}
 		else{
 			dt2 = variableInfo(input$plotFactor)()
-			print(dt2)
 			gp1 = ggplot(dataCohort, aes_string(dt[[1]], fill = dt2[[1]])) + 
 				geom_histogram(color = color.palette$second, bins = input$nbBins) + 
 				xlab(dt[[2]]) + ylab("Counts")
@@ -182,13 +182,24 @@ shinyServer <- function(input, output) {
 		margpy1 <- list(l=45, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
-
 	})
 
 	# Scatter plot of chosen cohort descriptive variables
 	output$scatCohort <- renderPlotly({
-		gp1 = ggplot(dataCohort)
+		dtX = variableInfo(input$plotVariableX)()
+		dtY = variableInfo(input$plotVariableY)()
+		if(input$plotVariableCol == "Nothing"){
+			gp1 = ggplot(dataCohort, aes_string(dtX[[1]], dtY[[1]])) + geom_point(color = color.palette$main) + 
+				xlab(dtX[[2]]) + ylab(dtY[[2]])
+		}
+		else{
+			dtC = variableInfo(input$plotVariableCol)()
+			gp1 = ggplot(dataCohort, aes_string(dtX[[1]], dtY[[1]])) + geom_point(aes_string(color = dtC[[1]])) + 
+				xlab(dtX[[2]]) + ylab(dtY[[2]])
+		}
 		gpy1 = ggplotly(gp1)
+		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+
 	})
 	
 

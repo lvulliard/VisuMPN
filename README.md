@@ -4,7 +4,7 @@ This web application allows the user to explore interactively data from a cohort
 
 ## To-do next
 
-* Display patient IDs on histogram
-* Scatter plots
+* Display patient IDs on histogram and scatter plots
+* Take into account NAs, non relevant-points and redundancy
 * Violin plots
 * Circos plots
