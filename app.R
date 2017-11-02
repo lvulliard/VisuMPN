@@ -48,7 +48,7 @@ quantitativeVar = c(10, 11, 21, 22, 23, 35, 36)
 qualitativeVar = c(5,6,13, 24)
 
 # Define client UI
-shinyUi <- navbarPage(title = "MPN cohort data vizualization",
+shinyUi <- navbarPage(title = "MPN cohort data visualization",
 	# Starting tab
 	tabPanel(title = "What's this?",
 		p(paste("This web application allows the user to explore interactively data from a cohort of 113 myeloproliferative neoplasm",
@@ -64,7 +64,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 				bsCollapse(
 					bsCollapsePanel("Variables",
 						selectInput(inputId = "plotVariable",
-							label = "Data to vizualize:",
+							label = "Data to visualize:",
 							choices = dataCohortTypes[quantitativeVar,2],
 							selected = 1,
 							multiple = FALSE
@@ -162,7 +162,7 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 				bsCollapse(
 					bsCollapsePanel("Variables",
 						selectInput(inputId = "plotVariableViolin",
-							label = "Data to vizualize:",
+							label = "Data to visualize:",
 							choices = dataCohortTypes[quantitativeVar,2],
 							selected = 1,
 							multiple = FALSE
@@ -174,6 +174,15 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 							multiple = FALSE
 						), 
 						style = "primary"
+					),
+					bsCollapsePanel("Graphical parameters",
+						sliderInput(inputId = "jitterViolin",
+							label = "Jittering parameter:",
+							min = 0,
+							max = 0.4, 
+							value = 0.05
+						), 
+						style = "info"
 					),
 					multiple = TRUE,
 					open = "Variables"
@@ -248,7 +257,7 @@ shinyServer <- function(input, output) {
 		dt = variableInfo(input$plotVariableViolin)()
 		dt2 = variableInfo(input$plotFactorViolin)()
 		gp1 = ggplot(dataCohort, aes_string(dt2[[1]], dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
-			geom_jitter(height = 0, width = 0.05) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
+			geom_jitter(height = 0, width = input$jitterViolin) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
 		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))

@@ -1,4 +1,4 @@
-# Myeloproliferative neoplasm patient cohort data vizualization
+# Myeloproliferative neoplasm patient cohort data visualization
 
 This web application allows the user to explore interactively data from a cohort of 113 myeloproliferative neoplasm (MPN) blood donors and 15 healthy blood controls.
 
