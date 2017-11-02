@@ -3,6 +3,13 @@ library(shinyBS)
 library(plotly)
 library(ggplot2)
 
+# Define functions
+
+# Allow addition of uneval types (to add ggplot aes and aes_string outputs)
+`+.uneval` <- function(a,b) {
+    `class<-`(modifyList(a,b), "uneval")
+}
+
 
 # Define constants
 color.palette = c()
@@ -239,7 +246,7 @@ shinyServer <- function(input, output) {
 		dtX = variableInfo(input$plotVariableX)()
 		dtY = variableInfo(input$plotVariableY)()
 		if(input$plotVariableCol == "Nothing"){
-			gp1 = ggplot(dataCohort, aes_string(dtX[[1]], dtY[[1]])) + geom_point(color = color.palette$main) + 
+			gp1 = ggplot(dataCohort, aes(text = unique.sample.id) + aes_string(dtX[[1]], dtY[[1]])) + geom_point(color = color.palette$main) + 
 				xlab(dtX[[2]]) + ylab(dtY[[2]])
 		}
 		else{
@@ -256,7 +263,9 @@ shinyServer <- function(input, output) {
 	output$violCohort <- renderPlotly({
 		dt = variableInfo(input$plotVariableViolin)()
 		dt2 = variableInfo(input$plotFactorViolin)()
-		gp1 = ggplot(dataCohort, aes_string(dt2[[1]], dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
+		print(dt2[[1]])
+		print(head(dataCohort$unique.sample.id))
+		gp1 = ggplot(dataCohort, aes_string(x = dt2[[1]], y = dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
 			geom_jitter(height = 0, width = input$jitterViolin) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
 		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
