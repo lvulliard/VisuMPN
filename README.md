@@ -4,5 +4,7 @@ This web application allows the user to explore interactively data from a cohort
 
 ## To-do next
 
-* First draft of the application organization
-* Histograms of the continuous quantitative variables
+* Display patient IDs on histogram
+* Scatter plots
+* Violin plots
+* Circos plots

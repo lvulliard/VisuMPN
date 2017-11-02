@@ -57,20 +57,20 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 
 	# Cohort presentation tabs
 	navbarMenu(title = "Explore the cohort",
-		# Violin plots tab
-		tabPanel(title = "Clinical data",
+		# Histograms tab
+		tabPanel(title = "Clinical data - Histograms",
 			# Sidebar with plot options
 			sidebarPanel(
 				bsCollapse(
 					bsCollapsePanel("Variables",
 						selectInput(inputId = "plotVariable",
-			  				label = "Data to vizualize",
+			  				label = "Data to vizualize:",
 			  				choices = dataCohortTypes[quantitativeVar,2],
 			  				selected = 1,
 			  				multiple = FALSE
 		  				),
 		  				selectInput(inputId = "plotFactor",
-			  				label = "Factor by",
+			  				label = "Factor by:",
 			  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
 			  				selected = 1,
 			  				multiple = FALSE
@@ -96,11 +96,59 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 				tabsetPanel(
 					tabPanel(title = "Plot",
 						plotlyOutput("histCohort"),  
-						verbatimTextOutput("infoClick") # Display click coordinates
+						verbatimTextOutput("infoClick"), # Display click coordinates
+						id = "histCohortPlotTab"
 					),
 					tabPanel(title = "Data",
-						dataTableOutput("histCohortTable")
-					)
+						dataTableOutput("histCohortTable"),
+						id = "histCohortDataTab"
+					),
+					id = "histCohortTabs"
+				)
+			)
+		),
+
+		# Scatter plots tab
+		tabPanel(title = "Clinical data - Scatter plots",
+			# Sidebar with plot options
+			sidebarPanel(
+				bsCollapse(
+					bsCollapsePanel("Variables",
+						selectInput(inputId = "plotVariableX",
+			  				label = "Data on x-axis:",
+			  				choices = dataCohortTypes[quantitativeVar,2],
+			  				selected = 1,
+			  				multiple = FALSE
+		  				),
+		  				selectInput(inputId = "plotVariableY",
+			  				label = "Data on y-axis:",
+			  				choices = dataCohortTypes[quantitativeVar,2],
+			  				selected = 2,
+			  				multiple = FALSE
+		  				),
+		  				selectInput(inputId = "plotVariableCol",
+			  				label = "Color by:",
+			  				choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+			  				selected = 1,
+			  				multiple = FALSE
+						),  
+						style = "primary"
+					),
+					multiple = TRUE,
+					open = "Variables"
+				)
+				
+			),
+			# Main displaying panel
+			mainPanel(
+				tabsetPanel(
+					tabPanel(title = "Plot",
+						id = "ScatCohortPlotTab"
+					),
+					tabPanel(title = "Data",
+						id = "ScatCohortDataTab"
+					),
+					id = "ScatCohortTabs"
 				)
 			)
 		)
@@ -109,6 +157,11 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 
 # Define R server
 shinyServer <- function(input, output) {
+
+	# # For a variable chosen in an input of the UI, return info on corresponding field in the cohort data
+	# variableInfo = function(var){
+	# 	return(reactive({dataCohortTypes[dataCohortTypes[,2] == var,]}))
+	# }
 
 	# From the variable chosen in the drop-down listbox, return info on corresponding field in the cohort data
 	plotVariableInfo <- reactive({
@@ -141,6 +194,13 @@ shinyServer <- function(input, output) {
 
 	})
 
+	# Scatter plot of chosen cohort descriptive variables
+	output$scatCohort <- renderPlotly({
+		gp1 = ggplot(dataCohort)
+		gpy1 = ggplotly(gp1)
+	})
+	
+
 	# Return text with coordinates of the object clicked
 	output$infoClick <- renderText({
 		click_event = event_data("plotly_click")
@@ -163,6 +223,10 @@ shinyServer <- function(input, output) {
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
+	})
+
+	output$scatCohortTable <- renderDataTable({
+		data.frame(1:5)
 	})
 }
 
