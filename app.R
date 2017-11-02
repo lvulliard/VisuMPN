@@ -153,6 +153,46 @@ shinyUi <- navbarPage(title = "MPN cohort data vizualization",
 					id = "ScatCohortTabs"
 				)
 			)
+		),
+
+		# Violin plots tab
+		tabPanel(title = "Clinical data - Violin plots",
+			# Sidebar with plot options
+			sidebarPanel(
+				bsCollapse(
+					bsCollapsePanel("Variables",
+						selectInput(inputId = "plotVariableViolin",
+							label = "Data to vizualize:",
+							choices = dataCohortTypes[quantitativeVar,2],
+							selected = 1,
+							multiple = FALSE
+						),
+						selectInput(inputId = "plotFactorViolin",
+							label = "Factor by:",
+							choices = c("Nothing", dataCohortTypes[qualitativeVar,2]),
+							selected = 1,
+							multiple = FALSE
+						), 
+						style = "primary"
+					),
+					multiple = TRUE,
+					open = "Variables"
+				)
+				
+			),
+			# Main displaying panel
+			mainPanel(
+				tabsetPanel(
+					tabPanel(title = "Plot",
+						id = "ViolCohortPlotTab"
+					),
+					tabPanel(title = "Data",
+						dataTableOutput("violCohortTable"),
+						id = "ViolCohortDataTab"
+					),
+					id = "ViolCohortTabs"
+				)
+			)
 		)
 	)
 )
@@ -234,6 +274,18 @@ shinyServer <- function(input, output) {
 		if(input$plotVariableCol != "Nothing"){
 			dt3 = variableInfo(input$plotVariableCol)()
 			colToExport = append(colToExport, dt3[[3]])
+		}
+		tmpframe = data.frame(dataCohort[,colToExport])
+		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+		tmpframe
+	})
+
+	output$violCohortTable <- renderDataTable({
+		dt = variableInfo(input$plotVariableViolin)()
+		colToExport = c(1,dt[[3]])
+		if(input$plotFactorViolin != "Nothing"){
+			dt2 = variableInfo(input$plotFactorViolin)()
+			colToExport = append(colToExport, dt2[[3]])
 		}
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
