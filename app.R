@@ -285,7 +285,7 @@ shinyServer <- function(input, output) {
 		}
 		else{
 			dtC = variableInfo(input$plotVariableCol)()
-			gp1 = ggplot(dataCohort, aes_string(dtX[[1]], dtY[[1]])) + geom_point(aes_string(color = dtC[[1]])) + 
+			gp1 = ggplot(dataCohort, aes(text = unique.sample.id) + aes_string(dtX[[1]], dtY[[1]])) + geom_point(aes_string(color = dtC[[1]])) + 
 				xlab(dtX[[2]]) + ylab(dtY[[2]])
 		}
 		gpy1 = ggplotly(gp1)
