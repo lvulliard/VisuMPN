@@ -2,6 +2,7 @@ library(shiny)
 library(shinyBS)
 library(plotly)
 library(ggplot2)
+library(RColorBrewer)
 
 # Define functions
 
@@ -219,12 +220,15 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					bsCollapsePanel("Variables",
 						checkboxGroupInput(inputId = "plotVariablesPie",
 							label = "Data to visualize:",
-                     		choices = dataCohortTypes[quantitativeVar,2],
-                     		selected = dataCohortTypes[quantitativeVar,2]
+                     		choices = dataCohortTypes[qualitativeVar,2],
+                     		selected = dataCohortTypes[qualitativeVar,2]
 						), 
 						style = "primary"
 					),
-					bsCollapsePanel("Graphical parameters", 
+					bsCollapsePanel("Graphical parameters",
+						radioButtons("pieOrMatrix", label = "Visualization type:",
+							choices = c("Matrix", "Pie chart"),
+							selected = "Matrix", inline = TRUE),
 						style = "info"
 					),
 					multiple = TRUE,
@@ -236,6 +240,12 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
+						conditionalPanel(
+							condition = "input.pieOrMatrix == \"Matrix\"",
+								plotlyOutput("matrixCohort")),
+						conditionalPanel(
+							condition = "input.pieOrMatrix == \"Pie chart\"",
+								plotOutput("pieCohort")),
 						id = "PieCohortPlotTab"
 					),
 					tabPanel(title = "Data",
@@ -306,7 +316,7 @@ shinyServer <- function(input, output) {
 	})
 
 	# Pie chart or matrix of chosen cohort descriptive variables
-	output$pieCohort <- renderPlotly({
+	output$matrixCohort <- renderPlotly({
 		# Check if variables are selected
 		nbVarSelected = length(input$plotVariablesPie) 
 		if(nbVarSelected == 0){
@@ -316,19 +326,47 @@ shinyServer <- function(input, output) {
 		# Sort the data by columns in input vector and count n
 		sortedDataCohort = dataCohort
 		for(i in rev(input$plotVariablesPie)){
-			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,i]),]
+			dt = variableInfo(i)()
+			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,dt[[3]]]),]
 		}
 
-		gp1 = ggplot(sortedDataCohort)
+		gp1 = ggplot(sortedDataCohort, aes(text = unique.sample.id))
 		for(i in 1:nbVarSelected){
-			dt = variableInfo(input$plotVariablesPie[1])
-			gp1 = gp1 + geom_rect(aes(fill=dt[[1]], ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i, text = unique.sample.id))
+			dt = variableInfo(input$plotVariablesPie[i])()
+			gp1 = gp1 + geom_rect(aes_string(fill=dt[[1]]) +
+				aes_(ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i))
 		}			
-		gp1 = gp1 + xlim(c(0, nbVarSelected)) + theme(aspect.ratio=1) + scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17))
+		gp1 = gp1 + xlim(c(1, nbVarSelected+1)) + theme(aspect.ratio=1) + scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17))
   		
   		gpy1 = ggplotly(gp1) 
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+	})
+
+	output$pieCohort <- renderPlot({
+		# Check if variables are selected
+		nbVarSelected = length(input$plotVariablesPie) 
+		if(nbVarSelected == 0){
+			return(ggplot())
+		}
+
+		# Sort the data by columns in input vector and count n
+		sortedDataCohort = dataCohort
+		for(i in rev(input$plotVariablesPie)){
+			dt = variableInfo(i)()
+			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,dt[[3]]]),]
+		}
+
+		gp1 = ggplot(sortedDataCohort, aes(text = unique.sample.id))
+		for(i in 1:nbVarSelected){
+			dt = variableInfo(input$plotVariablesPie[i])()
+			gp1 = gp1 + geom_rect(aes_string(fill=dt[[1]]) +
+				aes_(ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i))
+		}			
+		gp1 = gp1 + xlim(c(1, nbVarSelected+1)) + theme(aspect.ratio=1) + 
+			scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17)) + coord_polar(theta="y")
+  		
+		gp1
 	})
 
 	# Return text with coordinates of the object clicked
