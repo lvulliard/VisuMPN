@@ -35,6 +35,7 @@ dataCohort$batch = as.factor(dataCohort$batch)
 dataCohort$diagnosis = as.factor(dataCohort$diagnosis)
 dataCohort$genotype = as.factor(dataCohort$genotype)
 dataCohort$sex = as.factor(dataCohort$sex)
+dataCohort$thrombotic.events.after.diagn = as.factor(dataCohort$thrombotic.events.after.diagn)
 
 # Create new columns by data transformation
 # Extract unique patient ID from unique sample ID
@@ -297,12 +298,36 @@ shinyServer <- function(input, output) {
 	output$violCohort <- renderPlotly({
 		dt = variableInfo(input$plotVariableViolin)()
 		dt2 = variableInfo(input$plotFactorViolin)()
-		print(dt2[[1]])
-		print(head(dataCohort$unique.sample.id))
 		gp1 = ggplot(dataCohort, aes_string(x = dt2[[1]], y = dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
 			geom_jitter(height = 0, width = input$jitterViolin) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
 		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
+		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+	})
+
+	# Pie chart or matrix of chosen cohort descriptive variables
+	output$pieCohort <- renderPlotly({
+		# Check if variables are selected
+		nbVarSelected = length(input$plotVariablesPie) 
+		if(nbVarSelected == 0){
+			return(ggplot())
+		}
+
+		# Sort the data by columns in input vector and count n
+		sortedDataCohort = dataCohort
+		for(i in rev(input$plotVariablesPie)){
+			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,i]),]
+		}
+
+		gp1 = ggplot(sortedDataCohort)
+		for(i in 1:nbVarSelected){
+			dt = variableInfo(input$plotVariablesPie[1])
+			gp1 = gp1 + geom_rect(aes(fill=dt[[1]], ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i, text = unique.sample.id))
+		}			
+		gp1 = gp1 + xlim(c(0, nbVarSelected)) + theme(aspect.ratio=1) + scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17))
+  		
+  		gpy1 = ggplotly(gp1) 
+
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
 
