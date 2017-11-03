@@ -36,6 +36,7 @@ dataCohort$batch = as.factor(dataCohort$batch)
 dataCohort$diagnosis = as.factor(dataCohort$diagnosis)
 dataCohort$genotype = as.factor(dataCohort$genotype)
 dataCohort$sex = as.factor(dataCohort$sex)
+dataCohort$thrombotic.events.after.diagn[dataCohort$thrombotic.events.after.diagn == ""] <- "unknown"
 dataCohort$thrombotic.events.after.diagn = as.factor(dataCohort$thrombotic.events.after.diagn)
 
 # Create new columns by data transformation
@@ -229,6 +230,9 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						radioButtons("pieOrMatrix", label = "Visualization type:",
 							choices = c("Matrix", "Pie chart"),
 							selected = "Matrix", inline = TRUE),
+						conditionalPanel(
+							condition = "input.pieOrMatrix == \"Pie chart\"",
+								checkboxInput(inputId = "pieLogScale", label = "Radial log-transformation", value = TRUE)),
 						style = "info"
 					),
 					multiple = TRUE,
@@ -282,7 +286,7 @@ shinyServer <- function(input, output) {
 				xlab(dt[[2]]) + ylab("Counts")
 		}
 		margpy1 <- list(l=45, r=5, b=40, t=5) # margins on each side
-		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
+		gpy1 = ggplotly(gp1 + theme_light()) %>% layout(margin=margpy1)
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
 
@@ -299,7 +303,7 @@ shinyServer <- function(input, output) {
 			gp1 = ggplot(dataCohort, aes(text = unique.sample.id) + aes_string(dtX[[1]], dtY[[1]])) + geom_point(aes_string(color = dtC[[1]])) + 
 				xlab(dtX[[2]]) + ylab(dtY[[2]])
 		}
-		gpy1 = ggplotly(gp1)
+		gpy1 = ggplotly(gp1 + theme_light())
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 
 	})
@@ -311,7 +315,7 @@ shinyServer <- function(input, output) {
 		gp1 = ggplot(dataCohort, aes_string(x = dt2[[1]], y = dt[[1]])) + geom_violin(aes_string(fill = dt2[[1]])) +
 			geom_jitter(height = 0, width = input$jitterViolin) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
 		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
-		gpy1 = ggplotly(gp1) %>% layout(margin=margpy1)
+		gpy1 = ggplotly(gp1 + theme_light()) %>% layout(margin=margpy1)
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
 
@@ -323,11 +327,13 @@ shinyServer <- function(input, output) {
 			return(ggplot())
 		}
 
-		# Sort the data by columns in input vector and count n
+		# Sort the data by columns in input vector and count total number of factors in plot
 		sortedDataCohort = dataCohort
+		nbFactors = 0
 		for(i in rev(input$plotVariablesPie)){
 			dt = variableInfo(i)()
 			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,dt[[3]]]),]
+			nbFactors = nbFactors + length(levels(sortedDataCohort[,dt[[3]]]))
 		}
 
 		gp1 = ggplot(sortedDataCohort, aes(text = unique.sample.id))
@@ -336,9 +342,11 @@ shinyServer <- function(input, output) {
 			gp1 = gp1 + geom_rect(aes_string(fill=dt[[1]]) +
 				aes_(ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i))
 		}			
-		gp1 = gp1 + xlim(c(1, nbVarSelected+1)) + theme(aspect.ratio=1) + scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17))
+		gp1 = gp1 + theme(aspect.ratio=1) + 
+			scale_x_continuous(breaks = 1:nbVarSelected + 0.5, labels = input$plotVariablesPie) +
+			scale_fill_manual(guide = guide_legend(title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors))
   		
-  		gpy1 = ggplotly(gp1) 
+  		gpy1 = ggplotly(gp1 + theme_light()) 
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
@@ -350,23 +358,28 @@ shinyServer <- function(input, output) {
 			return(ggplot())
 		}
 
-		# Sort the data by columns in input vector and count n
+		# Sort the data by columns in input vector and count total number of factors in plot
 		sortedDataCohort = dataCohort
+		nbFactors = 0
 		for(i in rev(input$plotVariablesPie)){
 			dt = variableInfo(i)()
 			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,dt[[3]]]),]
+			nbFactors = nbFactors + length(levels(sortedDataCohort[,dt[[3]]]))
 		}
 
 		gp1 = ggplot(sortedDataCohort, aes(text = unique.sample.id))
 		for(i in 1:nbVarSelected){
 			dt = variableInfo(input$plotVariablesPie[i])()
 			gp1 = gp1 + geom_rect(aes_string(fill=dt[[1]]) +
-				aes_(ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax=i+1, xmin=i))
+				aes_(ymax=1:dim(dataCohort)[1], ymin=1:dim(dataCohort)[1]-1, xmax= ifelse(input$pieLogScale, log(i+1), i+1),
+				xmin=ifelse(input$pieLogScale, log(i), i)))
 		}			
-		gp1 = gp1 + xlim(c(1, nbVarSelected+1)) + theme(aspect.ratio=1) + 
-			scale_fill_manual(values = colorRampPalette(brewer.pal(12, "Set3"))(17)) + coord_polar(theta="y")
+		gp1 = gp1 + xlim(c(ifelse(input$pieLogScale, 0, 1), ifelse(input$pieLogScale, log(nbVarSelected+1), nbVarSelected+1))) + theme(aspect.ratio=1) + 
+			scale_fill_manual(guide = guide_legend(ncol = nbVarSelected, title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors)) +
+			scale_x_discrete() + # Remove radial legend
+			coord_polar(theta="y")
   		
-		gp1
+		gp1 + theme_light()
 	})
 
 	# Return text with coordinates of the object clicked
