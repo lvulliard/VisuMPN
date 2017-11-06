@@ -18,6 +18,9 @@ color.palette$main = "#FF6600"
 color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
 
+
+# Load cohort data
+
 dataCohort = read.table("naseq_cohort_sample_annotation_fschischlik_2017_10.tsv", sep="\t",
 	stringsAsFactors = FALSE, header=T, comment.char="") # Import data file
 
@@ -56,6 +59,13 @@ dataCohortTypes = data.frame(dataColNames = names(dataCohort), description = c("
 
 quantitativeVar = c(10, 11, 21, 22, 23, 35, 36)
 qualitativeVar = c(5,6,13, 24)
+
+# Load variant data
+# Import data file
+dataVariants = read.table("rnaseq_varcall_patient_mutation_fixids_03_2017.tsv", sep="\t", header=T, comment.char="") 
+# Remove null-flagged patients
+dataVariants = dataVariants[as.character(dataVariants$UNIQ_SAMPLE_ID) %in% paste(dataCohort$sample.id, dataCohort$batch, sep = "_"), ] 
+
 
 # Define client UI
 shinyUi <- navbarPage(title = "MPN cohort data visualization",
@@ -260,6 +270,27 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				)
 			)
 		)
+	),
+
+	# Variants presentation tabs
+	navbarMenu(title = "Explore the variants",
+		tabPanel(title = "Variants data - Filtering",
+			mainPanel(
+				HTML(paste0("<p>From the RNA sequencing of the samples, variant calling is performed using GATK.<br/>",
+					"These variants should be filtered to integrate the biological information available, in order ",
+					"to avoid false positives. Moreover in the absence of matched normal samples, the litterature ",
+					"should be investigated to differentiate as precisely as possible the somatic variants from ",
+					"the germline variants.<br/>The healthy control samples are used to test the stringency of the ",
+					"filters, and the variants predicted in normal samples are removed from further analyses.<br/>",
+					"The following filters can be parametrized:</p>")),
+				id = "varFilters"
+			)
+		),
+		tabPanel(title = "Variants data - Co-occurence of mutations"),
+		tabPanel(title = "Variants data - Occurence of mutations per disease"),
+		tabPanel(title = "Variants data - Data",
+			dataTableOutput("varTable"),
+			id = "varDataTab")
 	)
 )
 
@@ -444,6 +475,10 @@ shinyServer <- function(input, output) {
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
+	})
+
+	output$varTable <- renderDataTable({
+		dataVariants
 	})
 }
 
