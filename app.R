@@ -316,6 +316,17 @@ shinyServer <- function(input, output) {
 			geom_jitter(height = 0, width = input$jitterViolin) +	xlab(dt2[[2]]) + ylab(dt[[2]]) + theme(legend.position="none")
 		margpy1 <- list(l=60, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1 + theme_light()) %>% layout(margin=margpy1)
+
+		# Manually modify hoverinfo
+		nbFactors = length(levels(dataCohort[,dt2[[3]]]))
+		for(i in 1:nbFactors){
+			# Remove duplicated annotation of qualitative variable on density lines
+			gpy1$x$data[[i]]$text = gsub("^[^>]*>", "", gpy1$x$data[[i]]$text)
+		}
+		# Add sample ID to each point
+		gpy1$x$data[[nbFactors+1]]$text = paste0(gpy1$x$data[[nbFactors+1]]$text, paste0("<br />", dataCohort$unique.sample.id))
+
+
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
 
