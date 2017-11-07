@@ -64,7 +64,21 @@ qualitativeVar = c(5,6,13, 24)
 # Import data file
 dataVariants = read.table("rnaseq_varcall_patient_mutation_fixids_03_2017.tsv", sep="\t", header=T, comment.char="") 
 # Remove null-flagged patients
-dataVariants = dataVariants[as.character(dataVariants$UNIQ_SAMPLE_ID) %in% paste(dataCohort$sample.id, dataCohort$batch, sep = "_"), ] 
+dataCohort$sample.id.variant.file.format = paste(dataCohort$sample.id, dataCohort$batch, sep = "_")
+dataVariants = dataVariants[as.character(dataVariants$UNIQ_SAMPLE_ID) %in% dataCohort$sample.id.variant.file.format, ] 
+
+# Join the diagnosis and JAK2/CALR mutation status to the variant table
+dataVariants = merge(x = dataVariants, y = dataCohort[,names(dataCohort) %in% c("sample.id.variant.file.format", "diagnosis", "jak2", "calr")],
+	by.x = "UNIQ_SAMPLE_ID", by.y = "sample.id.variant.file.format", all.x = T)
+
+# Number of normal variants in the data before filtering
+nbIniNormVar = sum(dataVariants$diagnosis == "Control")
+
+# Create unique ID for all variants
+dataVariants$VAR_ID <- paste0(dataVariants$CHROM, ":", 
+                          dataVariants$POS, ":", 
+                          dataVariants$REF, ":", 
+                          dataVariants$ALT)
 
 
 # Define client UI
@@ -284,6 +298,10 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					"filters, and the variants predicted in normal samples are removed from further analyses.<br/>",
 					"The following filters can be parametrized:</p>")),
 				id = "varFilters"
+			),
+			sidebarPanel(
+				uiOutput("varFilterStringencyUI"),
+				id = "varFiltersSidebar"
 			)
 		),
 		tabPanel(title = "Variants data - Co-occurence of mutations"),
@@ -478,7 +496,48 @@ shinyServer <- function(input, output) {
 	})
 
 	output$varTable <- renderDataTable({
-		dataVariants
+		filteredDataVariants()
+	})
+
+	# Samples (including normal) filtered for the selected parameters, as variant IDs
+	filteredSamples <- reactive({
+		filtered = c()
+		return(filtered)
+	})
+
+	# Patient samples left after removing normal variants, as variant IDs
+	filteredPatients <- reactive({
+		filtered = filteredSamples()
+		# Filter out normal sample variants
+		return(filtered)
+	})
+
+	# Table of filtered patient variants
+	filteredDataVariants <- reactive({
+		return(dataVariants[! dataVariants$VAR_ID %in% filteredPatients(),])
+	})
+
+	# Output how well the filters remove healthy controls from the dataset
+	output$varFilterStringencyUI <- renderUI({
+		nbControlVariants = sum(dataVariants$diagnosis == "Control")
+		nbControlUnfilteredVariants = sum(dataVariants[! dataVariants$VAR_ID %in% filteredPatients(),]$diagnosis == "Control")
+
+		if(nbControlUnfilteredVariants == 0){
+			stringencyPanelName = "Filters seem to have an appropriate stringency"
+			stringencyPanelType = "success"
+		} else if(nbControlUnfilteredVariants < nbControlVariants) {
+			stringencyPanelName = "Filters are insufficiently stringent"
+			stringencyPanelType = "warning"
+		} else {
+			stringencyPanelName = "Filters fail to remove any normal sample"
+			stringencyPanelType = "danger"			
+		}
+
+		bsCollapsePanel(stringencyPanelName,
+						p(paste0(nbControlUnfilteredVariants, " out of ", nbControlVariants,
+							" normal variants are kept by applying these filters.")),
+						style = stringencyPanelType
+					)
 	})
 }
 

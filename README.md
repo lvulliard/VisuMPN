@@ -27,7 +27,7 @@ Implement basic cohort description plots
 
 ### Variants exploration
 
-* Import and filter data
+* Filter data
 * Co-occurence matrices
 * Co-expression matrices
 * Occurence per disease matrices
