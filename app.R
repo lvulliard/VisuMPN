@@ -509,6 +509,7 @@ shinyServer <- function(input, output) {
 	filteredPatients <- reactive({
 		filtered = filteredSamples()
 		# Filter out normal sample variants
+
 		return(filtered)
 	})
 
@@ -520,7 +521,7 @@ shinyServer <- function(input, output) {
 	# Output how well the filters remove healthy controls from the dataset
 	output$varFilterStringencyUI <- renderUI({
 		nbControlVariants = sum(dataVariants$diagnosis == "Control")
-		nbControlUnfilteredVariants = sum(dataVariants[! dataVariants$VAR_ID %in% filteredPatients(),]$diagnosis == "Control")
+		nbControlUnfilteredVariants = sum(dataVariants[! dataVariants$VAR_ID %in% filteredSamples(),]$diagnosis == "Control")
 
 		if(nbControlUnfilteredVariants == 0){
 			stringencyPanelName = "Filters seem to have an appropriate stringency"
