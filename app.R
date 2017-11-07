@@ -62,7 +62,8 @@ qualitativeVar = c(5,6,13, 24)
 
 # Load variant data
 # Import data file
-dataVariants = read.table("rnaseq_varcall_patient_mutation_fixids_03_2017.tsv", sep="\t", header=T, comment.char="") 
+dataVariants = read.table("rnaseq_varcall_patient_mutation_fixids_03_2017.tsv", 
+	sep="\t", header=T, comment.char="", stringsAsFactors = FALSE) 
 # Remove null-flagged patients
 dataCohort$sample.id.variant.file.format = paste(dataCohort$sample.id, dataCohort$batch, sep = "_")
 dataVariants = dataVariants[as.character(dataVariants$UNIQ_SAMPLE_ID) %in% dataCohort$sample.id.variant.file.format, ] 
@@ -76,10 +77,22 @@ nbIniNormVar = sum(dataVariants$diagnosis == "Control")
 
 # Create unique ID for all variants
 dataVariants$VAR_ID <- paste0(dataVariants$CHROM, ":", 
-                          dataVariants$POS, ":", 
-                          dataVariants$REF, ":", 
-                          dataVariants$ALT)
+	dataVariants$POS, ":", 
+	dataVariants$REF, ":", 
+	dataVariants$ALT)
 
+# Convert Minor Allele Frequencies
+dataVariants[dataVariants$X1000g2015feb_eur==".",]$X1000g2015feb_eur <- NA
+dataVariants[dataVariants$X1000g2015feb_amr==".",]$X1000g2015feb_amr <- NA
+dataVariants[dataVariants$X1000g2015feb_eas==".",]$X1000g2015feb_eas <- NA
+dataVariants[dataVariants$X1000g2015feb_sas==".",]$X1000g2015feb_sas <- NA
+dataVariants[dataVariants$X1000g2015feb_afr==".",]$X1000g2015feb_afr <- NA
+
+dataVariants$X1000g2015feb_eur <- as.numeric(dataVariants$X1000g2015feb_eur)
+dataVariants$X1000g2015feb_amr <- as.numeric(dataVariants$X1000g2015feb_amr)
+dataVariants$X1000g2015feb_eas <- as.numeric(dataVariants$X1000g2015feb_eas)
+dataVariants$X1000g2015feb_sas <- as.numeric(dataVariants$X1000g2015feb_sas)
+dataVariants$X1000g2015feb_afr <- as.numeric(dataVariants$X1000g2015feb_afr)
 
 # Define client UI
 shinyUi <- navbarPage(title = "MPN cohort data visualization",
@@ -297,6 +310,47 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					"the germline variants.<br/>The healthy control samples are used to test the stringency of the ",
 					"filters, and the variants predicted in normal samples are removed from further analyses.<br/>",
 					"The following filters can be parametrized:</p>")),
+				bsCollapse(
+					bsCollapsePanel("Minor Allele Frequency",
+						sliderInput(inputId = "varMAFFilterALL",
+							label = "Maximum MAF in 1K Genomes Project in the whole cohort:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						),
+						sliderInput(inputId = "varMAFFilterAFR",
+							label = "Maximum MAF in 1K Genomes Project for African super population:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						),
+						sliderInput(inputId = "varMAFFilterAMR",
+							label = "Maximum MAF in 1K Genomes Project for American super population:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						),
+						sliderInput(inputId = "varMAFFilterEAS",
+							label = "Maximum MAF in 1K Genomes Project for East Asian super population:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						),
+						sliderInput(inputId = "varMAFFilterEUR",
+							label = "Maximum MAF in 1K Genomes Project for European super population:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						),
+						sliderInput(inputId = "varMAFFilterSAS",
+							label = "Maximum MAF in 1K Genomes Project for South Asian super population:",
+							min = 0,
+							max = 1, 
+							value = 0.01
+						), 
+						style = "info"
+					)
+				),
 				id = "varFilters"
 			),
 			sidebarPanel(
@@ -453,7 +507,8 @@ shinyServer <- function(input, output) {
 		}
 	})
 
-	# Return table with select data
+	# Return tables with selected data
+
 	output$histCohortTable <- renderDataTable({
 		dt = variableInfo(input$plotVariable)()
 		colToExport = c(1,dt[[3]])
@@ -502,6 +557,7 @@ shinyServer <- function(input, output) {
 	# Samples (including normal) filtered for the selected parameters, as variant IDs
 	filteredSamples <- reactive({
 		filtered = c()
+		filtered = append(filtered, filterVariant_MAF(filtered)())
 		return(filtered)
 	})
 
@@ -509,7 +565,7 @@ shinyServer <- function(input, output) {
 	filteredPatients <- reactive({
 		filtered = filteredSamples()
 		# Filter out normal sample variants
-
+		filtered = append(filtered, unique(dataVariants[dataVariants$diagnosis == "Control",]$VAR_ID))
 		return(filtered)
 	})
 
@@ -535,11 +591,29 @@ shinyServer <- function(input, output) {
 		}
 
 		bsCollapsePanel(stringencyPanelName,
-						p(paste0(nbControlUnfilteredVariants, " out of ", nbControlVariants,
-							" normal variants are kept by applying these filters.")),
-						style = stringencyPanelType
-					)
+			p(paste0(nbControlUnfilteredVariants, " out of ", nbControlVariants,
+				" normal variants are kept by applying these filters.")),
+			style = stringencyPanelType
+		)
 	})
+
+	# Filters on the variant data
+
+	# Filter by MAF threshold
+	# select all variants were in at least 1 population the maf is higher than 0.01
+
+	filterVariant_MAF <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			unique(subset[!((subset$X1000g2015feb_all < input$varMAFFilterALL | is.na(subset$X1000g2015feb_all)) &
+				(subset$X1000g2015feb_afr < input$varMAFFilterAFR | is.na(subset$X1000g2015feb_afr)) &
+				(subset$X1000g2015feb_amr < input$varMAFFilterAMR | is.na(subset$X1000g2015feb_amr)) &
+				(subset$X1000g2015feb_eas < input$varMAFFilterEAS | is.na(subset$X1000g2015feb_eas)) &
+				(subset$X1000g2015feb_eur < input$varMAFFilterEUR | is.na(subset$X1000g2015feb_eur)) &
+				(subset$X1000g2015feb_sas < input$varMAFFilterSAS | is.na(subset$X1000g2015feb_sas))),]$VAR_ID)
+		}))
+	}
+
 }
 
 # Start Shiny app
