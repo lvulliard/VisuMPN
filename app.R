@@ -94,6 +94,9 @@ dataVariants$X1000g2015feb_eas <- as.numeric(dataVariants$X1000g2015feb_eas)
 dataVariants$X1000g2015feb_sas <- as.numeric(dataVariants$X1000g2015feb_sas)
 dataVariants$X1000g2015feb_afr <- as.numeric(dataVariants$X1000g2015feb_afr)
 
+# Compute ALT counts
+dataVariants$ALT.COUNT = as.numeric(gsub("^[^,]*,", "", dataVariants$AD))
+
 # Define client UI
 shinyUi <- navbarPage(title = "MPN cohort data visualization",
 	# Starting tab
@@ -402,7 +405,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 shinyServer <- function(input, output) {
 
 	# For a variable chosen in an input of the UI, return info on corresponding field in the cohort data
-	variableInfo = function(var){
+	variableInfo <- function(var){
 		return(reactive({dataCohortTypes[dataCohortTypes[,2] == var,]}))
 	}
 
@@ -590,6 +593,7 @@ shinyServer <- function(input, output) {
 	filteredSamples <- reactive({
 		filtered = c()
 		filtered = append(filtered, filterVariant_MAF(filtered)())
+		filtered = append(filtered, filterVariant_Ann(filtered)())
 		return(filtered)
 	})
 
@@ -642,6 +646,23 @@ shinyServer <- function(input, output) {
 				(subset$X1000g2015feb_eur < input$varMAFFilterEUR | is.na(subset$X1000g2015feb_eur)) &
 				(subset$X1000g2015feb_sas < input$varMAFFilterSAS | is.na(subset$X1000g2015feb_sas))),]$VAR_ID)
 		}))
+	}
+
+	# Filter by ALT score and annotation
+	filterVariant_Ann <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			if(input$varAnnFilterDB == "None"){
+				subset[subset$ALT.COUNT < input$varAnnFilterALT,]$VAR_ID		
+			} else if(input$varAnnFilterDB == "Keep all variants with COSMIC annotations") {
+				subset[(subset$ALT.COUNT < input$varAnnFilterALT) & (subset$cosmic70 == "."),]$VAR_ID
+			}
+			else{
+				append(subset[(subset$ALT.COUNT < input$varAnnFilterALT) & (subset$cosmic70 == "."),]$VAR_ID,
+					subset[(subset$snp129 != ".") & (subset$cosmic70 == "."),]$VAR_ID)
+			}
+		}))
+		
 	}
 
 }
