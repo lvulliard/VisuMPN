@@ -8,7 +8,7 @@ library(RColorBrewer)
 
 # Allow addition of uneval types (to add ggplot aes and aes_string outputs)
 `+.uneval` <- function(a,b) {
-    `class<-`(modifyList(a,b), "uneval")
+	`class<-`(modifyList(a,b), "uneval")
 }
 
 
@@ -258,8 +258,8 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					bsCollapsePanel("Variables",
 						checkboxGroupInput(inputId = "plotVariablesPie",
 							label = "Data to visualize:",
-                     		choices = dataCohortTypes[qualitativeVar,2],
-                     		selected = dataCohortTypes[qualitativeVar,2]
+					 		choices = dataCohortTypes[qualitativeVar,2],
+					 		selected = dataCohortTypes[qualitativeVar,2]
 						), 
 						style = "primary"
 					),
@@ -313,53 +313,77 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				bsCollapse(
 					bsCollapsePanel("Minor Allele Frequency",
 						bsModal("modalMAFFilter", "Minor Allele Frequency", "modMAFFilterLink", size = "large",
-    						HTML(paste0("You can filter by Minor Allele Frequency (MAF) estimated either in the whole 1000 genomes ",
-    							"project or by super population.<br/>Variants often found in the healthy cohort of the 1000 genomes ",
-    							"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with",
-    							"unknown MAF values are unaffected by this filter.")) 
-    					), # Information pop-up
-    					div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info")),
-    						style="float:right"),
+							HTML(paste0("You can filter by Minor Allele Frequency (MAF) estimated either in the whole 1000 genomes ",
+								"project or by super population.<br/>Variants often found in the healthy cohort of the 1000 genomes ",
+								"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with",
+								"unknown MAF values are unaffected by this filter.")) 
+						), # Information pop-up
+						div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info")),
+							style="float:right"),
 						sliderInput(inputId = "varMAFFilterALL",
-							label = "Maximum MAF in 1K Genomes Project in the whole cohort:",
+							label = "Maximum MAF in 1000 Genomes Project in the whole cohort:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						),
 						sliderInput(inputId = "varMAFFilterAFR",
-							label = "Maximum MAF in 1K Genomes Project for African super population:",
+							label = "Maximum MAF in 1000 Genomes Project for African super population:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						),
 						sliderInput(inputId = "varMAFFilterAMR",
-							label = "Maximum MAF in 1K Genomes Project for American super population:",
+							label = "Maximum MAF in 1000 Genomes Project for American super population:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						),
 						sliderInput(inputId = "varMAFFilterEAS",
-							label = "Maximum MAF in 1K Genomes Project for East Asian super population:",
+							label = "Maximum MAF in 1000 Genomes Project for East Asian super population:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						),
 						sliderInput(inputId = "varMAFFilterEUR",
-							label = "Maximum MAF in 1K Genomes Project for European super population:",
+							label = "Maximum MAF in 1000 Genomes Project for European super population:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						),
 						sliderInput(inputId = "varMAFFilterSAS",
-							label = "Maximum MAF in 1K Genomes Project for South Asian super population:",
+							label = "Maximum MAF in 1000 Genomes Project for South Asian super population:",
 							min = 0,
 							max = 1, 
 							value = 0.01
 						), 
 						style = "info"
+					),
+					bsCollapsePanel("Annotation and evidence",
+						bsModal("modalAnnFilter", "Annotation and evidence", "modAnnFilterLink", size = "large",
+							HTML(paste0("You can filter by counts of reads supporting the presence of the variant (ALT counts).<br/>",
+								"The more mutant sequencing reads mapping at the variant location, the stronger the evidence ",
+								"of the variant is.<br/>You may choose to keep variants with low ALT counts if they are annotated ",
+								"in the COSMIC database, which means that the variant has already been identified as a cancer ",
+								"germline variant in previous study.<br/>Moreover, even for high ALT counts, you may want to filter ",
+								"out variants having a rs ID from dbSNP and no COSMIC ID, meaning that the variants have already been ",
+								"previously observed but not yet linked to cancer and are therefore likely to be germline variants.")) 
+						), # Information pop-up
+						div(bsButton("modAnnFilterLink", label = " More info", icon = icon("info")),
+							style="float:right"),
+						sliderInput(inputId = "varAnnFilterALT",
+							label = "Minimum ALT count:",
+							min = 1,
+							max = 50, 
+							value = 3
+						),
+						radioButtons("varAnnFilterDB", label = "Annotation filtering:",
+							choices = c("None", "Keep all variants with COSMIC annotations", 
+								"Remove variants with dbSNP annotations and keep all variants with COSMIC annotations"),
+							selected = "Keep all variants with COSMIC annotations", inline = TRUE),
+						style = "info"
 					)
 				),
-				id = "varFilters"
+				id = "varFilters"	
 			),
 			sidebarPanel(
 				uiOutput("varFilterStringencyUI"),
@@ -467,8 +491,8 @@ shinyServer <- function(input, output) {
 		gp1 = gp1 + theme(aspect.ratio=1) + 
 			scale_x_continuous(breaks = 1:nbVarSelected + 0.5, labels = input$plotVariablesPie) +
 			scale_fill_manual(guide = guide_legend(title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors))
-  		
-  		gpy1 = ggplotly(gp1 + theme_light()) 
+ 		
+		gpy1 = ggplotly(gp1 + theme_light()) 
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
@@ -500,7 +524,7 @@ shinyServer <- function(input, output) {
 			scale_fill_manual(guide = guide_legend(ncol = nbVarSelected, title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors)) +
 			scale_x_discrete() + # Remove radial legend
 			coord_polar(theta="y")
-  		
+	
 		gp1 + theme_light()
 	})
 
