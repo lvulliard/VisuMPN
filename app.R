@@ -312,6 +312,14 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					"The following filters can be parametrized:</p>")),
 				bsCollapse(
 					bsCollapsePanel("Minor Allele Frequency",
+						bsModal("modalMAFFilter", "Minor Allele Frequency", "modMAFFilterLink", size = "large",
+    						HTML(paste0("You can filter by Minor Allele Frequency (MAF) estimated either in the whole 1000 genomes ",
+    							"project or by super population.<br/>Variants often found in the healthy cohort of the 1000 genomes ",
+    							"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with",
+    							"unknown MAF values are unaffected by this filter.")) 
+    					), # Information pop-up
+    					div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info")),
+    						style="float:right"),
 						sliderInput(inputId = "varMAFFilterALL",
 							label = "Maximum MAF in 1K Genomes Project in the whole cohort:",
 							min = 0,
@@ -600,8 +608,6 @@ shinyServer <- function(input, output) {
 	# Filters on the variant data
 
 	# Filter by MAF threshold
-	# select all variants were in at least 1 population the maf is higher than 0.01
-
 	filterVariant_MAF <- function(filtered){
 		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
 		return(reactive({
