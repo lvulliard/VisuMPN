@@ -405,9 +405,11 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"probability 95%.<br/>",
 								"CADD PHRED-like scaled C-score predicts whether a mutation will be deleterious or not, by ",
 								"aggregating the output of different prediction algorithms such as SIFT. Higher scores mean ",
-								"that the variants are more likely to be pathogenic: a score of 10 indicates a predicted ",
-								"top 10% deleterious substition observable on the human genome whereas a score of 20 corresponds ",
-								"to a top 1% deleterious mutation."))
+								"that the variants are more likely to be pathogenic: a score of 10 indicates a predicted effect ",
+								"similar to the top 10% deleterious substitions observable on the human genome whereas a score of ",
+								"20 corresponds to the top 1% deleterious mutations.<br/>",
+								"Finally the variants can be filtered by mutant allele frequency, to ensure the variant is really ",
+								"present on one or both chromosomes."))
 						), # Information pop-up
 						div(bsButton("modAddFilterLink", label = " More info", icon = icon("info")),
 							style="float:right"),
@@ -421,6 +423,12 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 							label = "Minimum CADD PHRED-like scaled C-score:",
 							min = 0,
 							max = 40, 
+							value = 0
+						),
+						sliderInput(inputId = "varFREQFilter",
+							label = "Minimum variant allele frequency:",
+							min = 0,
+							max = 1, 
 							value = 0
 						)
 					)
@@ -636,6 +644,7 @@ shinyServer <- function(input, output) {
 		filtered = append(filtered, filterVariant_Can(filtered)())
 		filtered = append(filtered, filterVariant_SIFT(filtered)())
 		filtered = append(filtered, filterVariant_CADD(filtered)())
+		filtered = append(filtered, filterVariant_Freq(filtered)())
 		return(filtered)
 	})
 
@@ -737,7 +746,7 @@ shinyServer <- function(input, output) {
 	filterVariant_Freq <- function(filtered){
 		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
 		return(reactive({
-			unique(subset[(subset$CADD_phred < input$varCADDFilter)&!(is.na(subset$CADD_phred)),]$VAR_ID)
+			unique(subset[(subset$VARIANT_FREQUENCY < input$varFREQFilter)&!(is.na(subset$VARIANT_FREQUENCY)),]$VAR_ID)
 		}))
 	}
 }
