@@ -440,8 +440,13 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				id = "varFiltersSidebar"
 			)
 		),
-		tabPanel(title = "Variants data - Co-occurence of mutations"),
-		tabPanel(title = "Variants data - Occurence of mutations per disease"),
+		tabPanel(title = "Variants data - Binary matrix",
+			plotlyOutput("varBinMat")
+		),
+		tabPanel(title = "Variants data - Co-occurrence of mutations",
+			plotlyOutput("varCoOc")
+		),
+		tabPanel(title = "Variants data - Occurrence of mutations per disease"),
 		tabPanel(title = "Variants data - Data",
 			dataTableOutput("varTable"),
 			id = "varDataTab")
@@ -749,6 +754,22 @@ shinyServer <- function(input, output) {
 			unique(subset[(subset$VARIANT_FREQUENCY < input$varFREQFilter)&!(is.na(subset$VARIANT_FREQUENCY)),]$VAR_ID)
 		}))
 	}
+
+	# Gene mutations co-occurrence
+	output$varCoOc <- renderPlotly({
+		dataset = filteredDataVariants()
+		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL))
+		ggplotly(gp1)
+	})
+
+	# Variant per sample matrix
+	output$varBinMat <- renderPlotly({
+		dataset = filteredDataVariants()
+		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = diagnosis)) + 
+			geom_tile(color= color.palette$second) + labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
+			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
+		ggplotly(gp1)
+	})
 }
 
 # Start Shiny app
