@@ -384,6 +384,18 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"Remove variants with dbSNP annotations and keep all variants with COSMIC annotations"),
 							selected = "Keep all variants with COSMIC annotations", inline = TRUE),
 						style = "info"
+					),
+					bsCollapsePanel("Non-canonical transcripts",
+						bsModal("modalCanFilter", "Non-canonical transcripts", "modCanFilterLink", size = "large",
+							HTML(paste0("A small amount of the variants are predicted to have an effect only on a non-canonical ",
+								"transcript, as annotated on the ENSEMBL database.<br/>These variants could be false positives ",
+								"and you may choose to filter them out."))
+						), # Information pop-up
+						div(bsButton("modCanFilterLink", label = " More info", icon = icon("info")),
+							style="float:right"),
+						checkboxInput(inputId = "canonicalTranscriptFilter", label = "Filter out non-canonical transcripts",
+							value = TRUE),
+						style = "info"
 					)
 				),
 				id = "varFilters"	
@@ -592,8 +604,13 @@ shinyServer <- function(input, output) {
 	# Samples (including normal) filtered for the selected parameters, as variant IDs
 	filteredSamples <- reactive({
 		filtered = c()
+		print(filtered)
 		filtered = append(filtered, filterVariant_MAF(filtered)())
+		print(filtered)
 		filtered = append(filtered, filterVariant_Ann(filtered)())
+		print(filtered)
+		filtered = append(filtered, filterVariant_Can(filtered)())
+		print(filtered)
 		return(filtered)
 	})
 
@@ -661,6 +678,17 @@ shinyServer <- function(input, output) {
 				append(subset[(subset$ALT.COUNT < input$varAnnFilterALT) & (subset$cosmic70 == "."),]$VAR_ID,
 					subset[(subset$snp129 != ".") & (subset$cosmic70 == "."),]$VAR_ID)
 			}
+		}))
+		
+	}
+
+	# Filter out non-canonical transcripts
+	filterVariant_Can <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			if(input$canonicalTranscriptFilter){
+				subset[subset$IS_CANONICAL_TRANSCRIPT=="N",]$VAR_ID
+			} 
 		}))
 		
 	}
