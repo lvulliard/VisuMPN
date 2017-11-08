@@ -9,6 +9,10 @@ This web application allows the user to explore interactively data from a cohort
 
 Represent and compare graphically several variables describing the cohort.
 
+### Variants exploration
+
+Filter variants to select only the somatic mutations with sufficient evidence.
+
 
 ## Changelog
 
@@ -27,7 +31,6 @@ Implement basic cohort description plots
 
 ### Variants exploration
 
-* Filter data
 * Co-occurence matrices
 * Co-expression matrices
 * Occurence per disease matrices
