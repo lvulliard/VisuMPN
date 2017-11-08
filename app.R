@@ -399,6 +399,10 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					bsCollapsePanel("Additional filters",
 						bsModal("modalAddFilter", "Non-canonical transcripts", "modAddFilterLink", size = "large",
 							HTML(paste0("Additionally you may want to apply extra filters to keep variants of interest only.<br/>",
+								"SIFT score is a prediction tool measuring the impact of non-synonymous point mutations on ",
+								"protein function. The output score corresponds to the probability of the variant to be tolerated ",
+								"by the organism. A score belows 0.05 therefore means that the variant is deleterious with ",
+								"probability 95%.<br/>",
 								"CADD PHRED-like scaled C-score predicts whether a mutation will be deleterious or not, by ",
 								"aggregating the output of different prediction algorithms such as SIFT. Higher scores mean ",
 								"that the variants are more likely to be pathogenic: a score of 10 indicates a predicted ",
@@ -406,7 +410,19 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"to a top 1% deleterious mutation."))
 						), # Information pop-up
 						div(bsButton("modAddFilterLink", label = " More info", icon = icon("info")),
-							style="float:right")
+							style="float:right"),
+						sliderInput(inputId = "varSIFTFilter",
+							label = "Maximum SIFT score:",
+							min = 0,
+							max = 1, 
+							value = 1
+						),
+						sliderInput(inputId = "varCADDFilter",
+							label = "Minimum CADD PHRED-like scaled C-score:",
+							min = 0,
+							max = 40, 
+							value = 0
+						)
 					)
 				),
 				id = "varFilters"	
@@ -618,6 +634,8 @@ shinyServer <- function(input, output) {
 		filtered = append(filtered, filterVariant_MAF(filtered)())
 		filtered = append(filtered, filterVariant_Ann(filtered)())
 		filtered = append(filtered, filterVariant_Can(filtered)())
+		filtered = append(filtered, filterVariant_SIFT(filtered)())
+		filtered = append(filtered, filterVariant_CADD(filtered)())
 		return(filtered)
 	})
 
@@ -694,11 +712,34 @@ shinyServer <- function(input, output) {
 		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
 		return(reactive({
 			if(input$canonicalTranscriptFilter){
-				subset[subset$IS_CANONICAL_TRANSCRIPT=="N",]$VAR_ID
+				unique(subset[subset$IS_CANONICAL_TRANSCRIPT=="N",]$VAR_ID)
 			} 
 		}))
 	}
 
+	# Filter on SIFT score
+	filterVariant_SIFT <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			unique(subset[(subset$SIFT_score > input$varSIFTFilter)&!(is.na(subset$SIFT_score)),]$VAR_ID)
+		}))
+	}
+
+	# Filter on CADD score
+	filterVariant_CADD <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			unique(subset[(subset$CADD_phred < input$varCADDFilter)&!(is.na(subset$CADD_phred)),]$VAR_ID)
+		}))
+	}
+
+	# Filter on mutant frequency
+	filterVariant_Freq <- function(filtered){
+		subset = dataVariants[! dataVariants$VAR_ID %in% filtered,]
+		return(reactive({
+			unique(subset[(subset$CADD_phred < input$varCADDFilter)&!(is.na(subset$CADD_phred)),]$VAR_ID)
+		}))
+	}
 }
 
 # Start Shiny app
