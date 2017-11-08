@@ -82,13 +82,7 @@ dataVariants$VAR_ID <- paste0(dataVariants$CHROM, ":",
 	dataVariants$ALT)
 
 # Convert Minor Allele Frequencies
-dataVariants[dataVariants$X1000g2015feb_eur==".",]$X1000g2015feb_eur <- NA
-dataVariants[dataVariants$X1000g2015feb_amr==".",]$X1000g2015feb_amr <- NA
-dataVariants[dataVariants$X1000g2015feb_eas==".",]$X1000g2015feb_eas <- NA
-dataVariants[dataVariants$X1000g2015feb_sas==".",]$X1000g2015feb_sas <- NA
-dataVariants[dataVariants$X1000g2015feb_afr==".",]$X1000g2015feb_afr <- NA
-
-dataVariants$X1000g2015feb_eur <- as.numeric(dataVariants$X1000g2015feb_eur)
+dataVariants$X1000g2015feb_eur <- as.numeric(dataVariants$X1000g2015feb_eur) # "." values are replaced by NAs
 dataVariants$X1000g2015feb_amr <- as.numeric(dataVariants$X1000g2015feb_amr)
 dataVariants$X1000g2015feb_eas <- as.numeric(dataVariants$X1000g2015feb_eas)
 dataVariants$X1000g2015feb_sas <- as.numeric(dataVariants$X1000g2015feb_sas)
@@ -96,6 +90,11 @@ dataVariants$X1000g2015feb_afr <- as.numeric(dataVariants$X1000g2015feb_afr)
 
 # Compute ALT counts
 dataVariants$ALT.COUNT = as.numeric(gsub("^[^,]*,", "", dataVariants$AD))
+
+# Convert SIFT and CADD scores
+dataVariants$CADD_phred <- as.numeric(dataVariants$CADD_phred) # "." values are replaced by NAs
+dataVariants$SIFT_score <- as.numeric(dataVariants$SIFT_score)
+
 
 # Define client UI
 shinyUi <- navbarPage(title = "MPN cohort data visualization",
@@ -396,6 +395,18 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						checkboxInput(inputId = "canonicalTranscriptFilter", label = "Filter out non-canonical transcripts",
 							value = TRUE),
 						style = "info"
+					),
+					bsCollapsePanel("Additional filters",
+						bsModal("modalAddFilter", "Non-canonical transcripts", "modAddFilterLink", size = "large",
+							HTML(paste0("Additionally you may want to apply extra filters to keep variants of interest only.<br/>",
+								"CADD PHRED-like scaled C-score predicts whether a mutation will be deleterious or not, by ",
+								"aggregating the output of different prediction algorithms such as SIFT. Higher scores mean ",
+								"that the variants are more likely to be pathogenic: a score of 10 indicates a predicted ",
+								"top 10% deleterious substition observable on the human genome whereas a score of 20 corresponds ",
+								"to a top 1% deleterious mutation."))
+						), # Information pop-up
+						div(bsButton("modAddFilterLink", label = " More info", icon = icon("info")),
+							style="float:right")
 					)
 				),
 				id = "varFilters"	
@@ -604,13 +615,9 @@ shinyServer <- function(input, output) {
 	# Samples (including normal) filtered for the selected parameters, as variant IDs
 	filteredSamples <- reactive({
 		filtered = c()
-		print(filtered)
 		filtered = append(filtered, filterVariant_MAF(filtered)())
-		print(filtered)
 		filtered = append(filtered, filterVariant_Ann(filtered)())
-		print(filtered)
 		filtered = append(filtered, filterVariant_Can(filtered)())
-		print(filtered)
 		return(filtered)
 	})
 
@@ -690,7 +697,6 @@ shinyServer <- function(input, output) {
 				subset[subset$IS_CANONICAL_TRANSCRIPT=="N",]$VAR_ID
 			} 
 		}))
-		
 	}
 
 }
