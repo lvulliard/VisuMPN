@@ -31,7 +31,7 @@ Implement basic cohort description plots
 
 ### Variants exploration
 
-* Co-occurrence matrices
+* Filter matrix by q-value
 * Co-expression matrices
 * Occurrence per disease matrices
 * Filter parametrization
