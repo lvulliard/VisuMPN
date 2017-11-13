@@ -3,6 +3,7 @@ library(shinyBS)
 library(plotly)
 library(ggplot2)
 library(RColorBrewer)
+library(d3heatmap)
 
 # Define functions
 
@@ -444,7 +445,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 			plotlyOutput("varBinMat")
 		),
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
-			plotlyOutput("varCoOc")
+			d3heatmapOutput("varCoOc", height = "750px")
 		),
 		tabPanel(title = "Variants data - Occurrence of mutations per disease"),
 		tabPanel(title = "Variants data - Data",
@@ -756,10 +757,31 @@ shinyServer <- function(input, output) {
 	}
 
 	# Gene mutations co-occurrence
-	output$varCoOc <- renderPlotly({
+	output$varCoOc <- renderD3heatmap({
 		dataset = filteredDataVariants()
-		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL))
-		ggplotly(gp1)
+		variantsPerPatient = table(dataset$GENESYMBOL, dataset$UNIQ_SAMPLE_ID) != 0 # Discard the number of mutation per patient
+
+		nbGenes = dim(variantsPerPatient)[1] # Number of genes that can be mutated
+		n = dim(variantsPerPatient)[2] # Number of patients with mutations
+
+		fisherTests = sapply(1:nbGenes, function(y) sapply(y:nbGenes, function(x) fisher.test(variantsPerPatient[y,], variantsPerPatient[x,])))
+		
+		pvalMat <- ORMat <- matrix(nrow =  nbGenes, ncol = nbGenes)
+		rownames(pvalMat) <- rownames(ORMat) <- colnames(pvalMat) <- colnames(ORMat) <- rownames(variantsPerPatient)
+
+		for(x in 1:nbGenes){
+			for(y in 1:(nbGenes-x+1)){
+				fTest = fisherTests[[x]][,y]
+				pvalMat[x,x+y-1] <- pvalMat[x+y-1,x] <- fTest$p.value
+				ORMat[x,x+y-1] <- ORMat[x+y-1,x] <- fTest$estimate
+			}
+		}
+
+		ORMat[ORMat == Inf] <- -1
+		ORMat[ORMat == -1] <- max(ORMat)	
+
+		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F)
+
 	})
 
 	# Variant per sample matrix
