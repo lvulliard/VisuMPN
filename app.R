@@ -442,10 +442,16 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 			)
 		),
 		tabPanel(title = "Variants data - Binary matrix",
-			plotlyOutput("varBinMat")
+			plotlyOutput("varBinMat", height = "600px")
 		),
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
-			d3heatmapOutput("varCoOc", height = "750px")
+			d3heatmapOutput("varCoOc", height = "600px"),
+			sliderInput(inputId = "alphaCoOc",
+							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+							min = 0,
+							max = 1, 
+							value = 0.025
+						)
 		),
 		tabPanel(title = "Variants data - Occurrence of mutations per disease"),
 		tabPanel(title = "Variants data - Data",
@@ -764,24 +770,51 @@ shinyServer <- function(input, output) {
 		nbGenes = dim(variantsPerPatient)[1] # Number of genes that can be mutated
 		n = dim(variantsPerPatient)[2] # Number of patients with mutations
 
-		fisherTests = sapply(1:nbGenes, function(y) sapply(y:nbGenes, function(x) fisher.test(variantsPerPatient[y,], variantsPerPatient[x,])))
+		fisherTests = sapply(1:nbGenes, function(y) sapply(y:nbGenes, function(x) fisher.test(variantsPerPatient[y,], 
+			variantsPerPatient[x,]))) # Test is co-occurrence observed can be expected by chance for random association rates
 		
 		pvalMat <- ORMat <- matrix(nrow =  nbGenes, ncol = nbGenes)
 		rownames(pvalMat) <- rownames(ORMat) <- colnames(pvalMat) <- colnames(ORMat) <- rownames(variantsPerPatient)
 
+		nbTests = (nbGenes-1)*nbGenes/2 # Non-self cooccurrence tests
+		all_pval = rep(NA, nbTests) # Store all non-diagonal p-values for BH correction
 		for(x in 1:nbGenes){
 			for(y in 1:(nbGenes-x+1)){
 				fTest = fisherTests[[x]][,y]
-				pvalMat[x,x+y-1] <- pvalMat[x+y-1,x] <- fTest$p.value
-				ORMat[x,x+y-1] <- ORMat[x+y-1,x] <- fTest$estimate
+				# pvalMat[x,x+y-1] <- pvalMat[x+y-1,x] <- fTest$p.value # Matrix of non-adjusted p-values
+				ORMat[x,x+y-1] <- ORMat[x+y-1,x] <- fTest$estimate # Matrix of odds-ratios
+				
+				if(y!=1){all_pval[y-1+(x-1)*(2*nbGenes - x)/2] = fTest$p.value}
 			}
 		}
 
-		ORMat[ORMat == Inf] <- -1
-		ORMat[ORMat == -1] <- max(ORMat)	
+		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
+		ORMat[ORMat == -1] <- max(ORMat)
 
-		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F)
+		# Benjamini-Hochberg
+		all_pval_bh = p.adjust(all_pval, method="BH")
 
+		for(x in 1:nbGenes){
+			for(y in 1:(nbGenes-x+1)){
+				# If not a diagonal case and corrected p-value too high
+				if((y!=1)&&(all_pval_bh[y-1+(x-1)*(2*nbGenes - x)/2] > input$alphaCoOc)){
+					# Remove value from matrix
+					ORMat[x,x+y-1] <- ORMat[x+y-1,x] <- NA
+				}
+			}
+		}
+
+		# Remove rows without any information
+		genesToKeep = colSums(ORMat, na.rm=T) != max(ORMat, na.rm=T)
+		ORMat = ORMat[genesToKeep, genesToKeep]
+	
+		tryCatch({
+				d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")
+			}, error = function(e) {
+    			p("No data to display.")
+		})
+
+		
 	})
 
 	# Variant per sample matrix

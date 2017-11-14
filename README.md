@@ -11,7 +11,7 @@ Represent and compare graphically several variables describing the cohort.
 
 ### Variants exploration
 
-Filter variants to select only the somatic mutations with sufficient evidence.
+Filter variants to select only the somatic mutations with sufficient evidence. Represent mutated gene per patient and co-occurrence of variants.
 
 
 ## Changelog
@@ -31,7 +31,6 @@ Implement basic cohort description plots
 
 ### Variants exploration
 
-* Filter matrix by q-value
 * Co-expression matrices
 * Occurrence per disease matrices
 * Filter parametrization
