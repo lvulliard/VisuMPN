@@ -33,7 +33,7 @@ Implement basic cohort description plots
 
 * Co-expression matrices
 * Occurrence per disease matrices
-* Filter parametrization
+* Legend on heatmap
 
 ### Patient-specific data
 
