@@ -457,7 +457,28 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				),
 				column(6,
 					sliderInput(inputId = "nbRepCoOc",
-						label = "Minimal amount of variants found on a gene:",
+						label = "Minimal amount of patients with variants per gene:",
+						min=1,
+						max=18,
+						value = 4
+					)
+				)
+			)
+		),
+		tabPanel(title = "Variants data - Occurrence of mutations per disease",
+			d3heatmapOutput("varDisOc", height = "600px"),
+			fluidRow(
+				column(6,
+					sliderInput(inputId = "alphaDisOc",
+						label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+						min = 0,
+						max = 1, 
+						value = 0.04
+					)
+				),
+				column(6,
+					sliderInput(inputId = "nbRepDisOc",
+						label = "Minimal amount of patients with variants per gene:",
 						min=1,
 						max=18,
 						value = 3
@@ -465,7 +486,6 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				)
 			)
 		),
-		tabPanel(title = "Variants data - Occurrence of mutations per disease"),
 		tabPanel(title = "Variants data - Data",
 			dataTableOutput("varTable"),
 			id = "varDataTab")
@@ -782,7 +802,7 @@ shinyServer <- function(input, output) {
 		n = dim(variantsPerPatient)[2] # Number of patients with mutations
 
 		# Remove genes with insufficient number of variants observed in the dataset
-		variantsPerPatient = variantsPerPatient[rowSums(variantsPerPatient) > input$nbRepCoOc, ]
+		variantsPerPatient = variantsPerPatient[rowSums(variantsPerPatient) >= input$nbRepCoOc, ]
 	
 		# Test if at least 2 genes remain
 		if(length(variantsPerPatient) <= n) {print("No data to display.");return()}
@@ -833,6 +853,59 @@ shinyServer <- function(input, output) {
 		ORMat = ORMat[genesToKeep, genesToKeep]
 
 		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
+	})
+
+	# Gene mutations per disease
+	output$varDisOc <- renderD3heatmap({
+		dataset = filteredDataVariants()
+		variantsPerDisease = table(dataset$diagnosis, dataset$GENESYMBOL)
+		variantsPerDisease = variantsPerDisease[rowSums(variantsPerDisease) > 0, colSums(variantsPerDisease) > 0]
+		n = dim(variantsPerDisease)
+
+		# Remove genes with insufficient number of variants observed in the dataset
+		variantsPerDisease = variantsPerDisease[,colSums(variantsPerDisease) >= input$nbRepDisOc]
+	
+		# Test if at least 2 genes remain
+		if(length(variantsPerDisease) <= n[2]) {print("No data to display.");return()}
+
+		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
+
+		n = dim(variantsPerDisease)
+		nbMut = sum(variantsPerDisease)
+
+		# Fisher's exact tests on contigency tables for each pair of gene and disease
+		for(x in 1:n[1]){
+			for(y in 1:n[2]){
+
+				cntgTab = data.frame(c(variantsPerDisease[x,y], sum(variantsPerDisease[,y]) - variantsPerDisease[x,y]),
+					c(sum(variantsPerDisease[x,]) - variantsPerDisease[x,y], 
+						nbMut + variantsPerDisease[x,y] - sum(variantsPerDisease[,y]) - sum(variantsPerDisease[x,]) ))
+				fTest = fisher.test(cntgTab)
+				ORMat[x,y] = fTest$estimate
+				pvalMat[x,y] = fTest$p.value
+			}
+		}
+
+		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
+		ORMat[ORMat == -1] <- max(ORMat)
+
+		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
+		colnames(pvalMat) = colnames(ORMat)
+		rownames(pvalMat) = rownames(ORMat)
+		is.na(ORMat) <- pvalMat > 0.9 # Convert non-significant odds-ratios to NA
+
+		# Remove rows without any information
+		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]+0.1 # Ensure that the non-NA values are positive
+		genesToKeep = colSums(ORMat, na.rm=T) > 0 # Check the sums by columns and rows to detect empty features
+		diagnosesToKeep = rowSums(ORMat, na.rm=T) > 0
+		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
+		
+		# Test if at least 1 OR is left
+		if(sum(genesToKeep) < 1) {print("No data to display.");return()}
+
+		ORMat = ORMat[diagnosesToKeep, genesToKeep]
+
+		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
 
 	# Variant per sample matrix
