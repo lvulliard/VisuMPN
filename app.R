@@ -446,12 +446,24 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		),
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			d3heatmapOutput("varCoOc", height = "600px"),
-			sliderInput(inputId = "alphaCoOc",
-							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-							min = 0,
-							max = 1, 
-							value = 0.025
-						)
+			fluidRow(
+    			column(6,
+			    	sliderInput(inputId = "alphaCoOc",
+						label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+						min = 0,
+						max = 1, 
+						value = 0.04
+					)
+				),
+				column(6,
+					sliderInput(inputId = "nbRepCoOc",
+						label = "Minimal amount of variants found on a gene:",
+						min=1,
+						max=18,
+						value = 3
+					)
+				)
+			)
 		),
 		tabPanel(title = "Variants data - Occurrence of mutations per disease"),
 		tabPanel(title = "Variants data - Data",
@@ -767,7 +779,15 @@ shinyServer <- function(input, output) {
 		dataset = filteredDataVariants()
 		variantsPerPatient = table(dataset$GENESYMBOL, dataset$UNIQ_SAMPLE_ID) != 0 # Discard the number of mutation per patient
 
-		nbGenes = dim(variantsPerPatient)[1] # Number of genes that can be mutated
+		n = dim(variantsPerPatient)[2] # Number of patients with mutations
+
+		# Remove genes with insufficient number of variants observed in the dataset
+		variantsPerPatient = variantsPerPatient[rowSums(variantsPerPatient) > input$nbRepCoOc, ]
+	
+		# Test if at least 2 genes remain
+		if(length(variantsPerPatient) <= n) {print("No data to display.");return()}
+
+		nbGenes = dim(variantsPerPatient)[1] # Number of genes that can be mutated several times
 		n = dim(variantsPerPatient)[2] # Number of patients with mutations
 
 		fisherTests = sapply(1:nbGenes, function(y) sapply(y:nbGenes, function(x) fisher.test(variantsPerPatient[y,], 
@@ -806,15 +826,13 @@ shinyServer <- function(input, output) {
 
 		# Remove rows without any information
 		genesToKeep = colSums(ORMat, na.rm=T) != max(ORMat, na.rm=T)
-		ORMat = ORMat[genesToKeep, genesToKeep]
-	
-		tryCatch({
-				d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")
-			}, error = function(e) {
-    			p("No data to display.")
-		})
-
 		
+		# Test if at least 2 genes remain
+		if(sum(genesToKeep) < 2) {print("No data to display.");return()}
+
+		ORMat = ORMat[genesToKeep, genesToKeep]
+
+		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
 
 	# Variant per sample matrix
