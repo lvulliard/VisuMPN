@@ -451,7 +451,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					d3heatmapOutput("varCoOc", height = "600px"),
+					d3heatmapOutput("varCoOc", height = "550px"),
 					fluidRow(
 		    			column(6,
 					    	sliderInput(inputId = "alphaCoOc",
@@ -472,9 +472,11 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					)
 				),
 				tabPanel(title = "Data - Odds-ratios",
+					div(downloadButton('varCoOcORDL', 'Download'),style="float:right"),
 					dataTableOutput("varCoOcORTable")
 				),
 				tabPanel(title = "Data - Raw p-values",
+					div(downloadButton('varCoOcPvalDL', 'Download'),style="float:right"),
 					dataTableOutput("varCoOcPvalTable")
 				),
 				id = "varCoOcTabs"
@@ -504,15 +506,18 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 					)
 				),
 				tabPanel(title = "Data - Odds-ratios",
+					div(downloadButton('varDisOcORDL', 'Download'),style="float:right"),
 					dataTableOutput("varDisOcORTable")
 				),
 				tabPanel(title = "Data - Corrected p-values",
+					div(downloadButton('varDisOcPvalDL', 'Download'),style="float:right"),
 					dataTableOutput("varDisOcPvalTable")
 				),
 				id = "varDisOcTabs"
 			)	
 		),
 		tabPanel(title = "Variants data - Data",
+			div(downloadButton('varDL', 'Download'),style="float:right"),
 			dataTableOutput("varTable"),
 			id = "varDataTab")
 	)
@@ -755,9 +760,19 @@ shinyServer <- function(input, output) {
 		}
 	)
 
+
+	# Variant exploration
+
 	output$varTable <- renderDataTable({
 		filteredDataVariants()
 	})
+
+	output$varDL <- downloadHandler(
+		filename = "variants_filtered.csv",
+		content = function(file) {
+			write.csv(filteredDataVariants(), file)
+		}
+	)
 
 	# Samples (including normal) filtered for the selected parameters, as variant IDs
 	filteredSamples <- reactive({
@@ -950,6 +965,20 @@ shinyServer <- function(input, output) {
 		return(cbind(gene = rownames(tab), tab))
 	})
 
+	output$varCoOcORDL <- downloadHandler(
+		filename = "variants_gene_gene_OR.csv",
+		content = function(file) {
+			write.csv(coOcOR()[[1]], file)
+		}
+	)	
+
+	output$varCoOcPvalDL <- downloadHandler(
+		filename = "variants_gene_gene_pval.csv",
+		content = function(file) {
+			write.csv(coOcOR()[[2]], file)
+		}
+	)
+
 
 	# Gene mutations per disease
 
@@ -1019,6 +1048,20 @@ shinyServer <- function(input, output) {
 		return(cbind(diagnosis = rownames(tab), tab))
 	})
 
+	output$varDisOcPvalDL <- downloadHandler(
+		filename = "variants_gene_disease_pval.csv",
+		content = function(file) {
+			write.csv(disOcOR()[[2]], file)
+		}
+	)
+
+	output$varDisOcORDL <- downloadHandler(
+		filename = "variants_gene_disease_OR.csv",
+		content = function(file) {
+			write.csv(disOcOR()[[1]], file)
+		}
+	)
+
 	# Variant per sample matrix
 	output$varBinMat <- renderPlotly({
 		dataset = filteredDataVariants()
@@ -1031,4 +1074,3 @@ shinyServer <- function(input, output) {
 
 # Start Shiny app
 shinyApp(ui = shinyUi, server = shinyServer)
-
