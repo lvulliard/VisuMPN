@@ -445,24 +445,35 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 			plotlyOutput("varBinMat", height = "600px")
 		),
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
-			d3heatmapOutput("varCoOc", height = "600px"),
-			fluidRow(
-    			column(6,
-			    	sliderInput(inputId = "alphaCoOc",
-						label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-						min = 0,
-						max = 1, 
-						value = 0.04
+			tabsetPanel(
+				tabPanel(title = "Plot",
+					d3heatmapOutput("varCoOc", height = "600px"),
+					fluidRow(
+		    			column(6,
+					    	sliderInput(inputId = "alphaCoOc",
+								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+								min = 0,
+								max = 1, 
+								value = 0.04
+							)
+						),
+						column(6,
+							sliderInput(inputId = "nbRepCoOc",
+								label = "Minimal amount of patients with variants per gene:",
+								min=1,
+								max=18,
+								value = 4
+							)
+						)
 					)
 				),
-				column(6,
-					sliderInput(inputId = "nbRepCoOc",
-						label = "Minimal amount of patients with variants per gene:",
-						min=1,
-						max=18,
-						value = 4
-					)
-				)
+				tabPanel(title = "Data - Odds-ratios",
+					dataTableOutput("varCoOcORTable")
+				),
+				tabPanel(title = "Data - Raw p-values",
+					dataTableOutput("varCoOcPvalTable")
+				),
+				id = "varCoOcTabs"
 			)
 		),
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
@@ -494,7 +505,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Data - Corrected p-values",
 					dataTableOutput("varDisOcPvalTable")
 				),
-			id = "varDisOcTabs"
+				id = "varDisOcTabs"
 			)	
 		),
 		tabPanel(title = "Variants data - Data",
@@ -806,7 +817,7 @@ shinyServer <- function(input, output) {
 	}
 
 	# Gene mutations co-occurrence
-	output$varCoOc <- renderD3heatmap({
+	coOcOR <- reactive({
 		dataset = filteredDataVariants()
 		variantsPerPatient = table(dataset$GENESYMBOL, dataset$UNIQ_SAMPLE_ID) != 0 # Discard the number of mutation per patient
 
@@ -832,7 +843,7 @@ shinyServer <- function(input, output) {
 		for(x in 1:nbGenes){
 			for(y in 1:(nbGenes-x+1)){
 				fTest = fisherTests[[x]][,y]
-				# pvalMat[x,x+y-1] <- pvalMat[x+y-1,x] <- fTest$p.value # Matrix of non-adjusted p-values
+				pvalMat[x,x+y-1] <- pvalMat[x+y-1,x] <- fTest$p.value # Matrix of non-adjusted p-values
 				ORMat[x,x+y-1] <- ORMat[x+y-1,x] <- fTest$estimate # Matrix of odds-ratios
 				
 				if(y!=1){all_pval[y-1+(x-1)*(2*nbGenes - x)/2] = fTest$p.value}
@@ -863,8 +874,25 @@ shinyServer <- function(input, output) {
 
 		ORMat = ORMat[genesToKeep, genesToKeep]
 
+		return(list(ORMat, pvalMat))		
+	})
+
+	output$varCoOc <- renderD3heatmap({
+		ORMat = coOcOR()[[1]]
+
 		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
+
+	output$varCoOcORTable <- renderDataTable({
+		tab = coOcOR()[[1]]
+		return(cbind(gene = rownames(tab), tab))
+	})
+
+	output$varCoOcPvalTable <- renderDataTable({
+		tab = coOcOR()[[2]]
+		return(cbind(gene = rownames(tab), tab))
+	})
+
 
 	# Gene mutations per disease
 
