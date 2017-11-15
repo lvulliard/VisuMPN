@@ -473,12 +473,12 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 						min = 0,
 						max = 1, 
-						value = 0.04
+						value = 0.4
 					)
 				),
 				column(6,
 					sliderInput(inputId = "nbRepDisOc",
-						label = "Minimal amount of patients with variants per gene:",
+						label = "Minimal amount of mutations per gene:",
 						min=1,
 						max=18,
 						value = 3
@@ -860,18 +860,16 @@ shinyServer <- function(input, output) {
 		dataset = filteredDataVariants()
 		variantsPerDisease = table(dataset$diagnosis, dataset$GENESYMBOL)
 		variantsPerDisease = variantsPerDisease[rowSums(variantsPerDisease) > 0, colSums(variantsPerDisease) > 0]
-		n = dim(variantsPerDisease)
-
+		
 		# Remove genes with insufficient number of variants observed in the dataset
 		variantsPerDisease = variantsPerDisease[,colSums(variantsPerDisease) >= input$nbRepDisOc]
 	
-		# Test if at least 2 genes remain
-		if(length(variantsPerDisease) <= n[2]) {print("No data to display.");return()}
-
-		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
-
+		# Test if at least 1 gene remains
 		n = dim(variantsPerDisease)
 		nbMut = sum(variantsPerDisease)
+		if(!n[2]) {print("No data to display.");return()}
+
+		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
 
 		# Fisher's exact tests on contigency tables for each pair of gene and disease
 		for(x in 1:n[1]){
@@ -892,7 +890,7 @@ shinyServer <- function(input, output) {
 		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
 		colnames(pvalMat) = colnames(ORMat)
 		rownames(pvalMat) = rownames(ORMat)
-		is.na(ORMat) <- pvalMat > 0.9 # Convert non-significant odds-ratios to NA
+		is.na(ORMat) <- pvalMat > input$alphaDisOc # Convert non-significant odds-ratios to NA
 
 		# Remove rows without any information
 		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]+0.1 # Ensure that the non-NA values are positive
