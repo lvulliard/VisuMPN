@@ -899,7 +899,7 @@ shinyServer <- function(input, output) {
 		variantsPerPatient = variantsPerPatient[rowSums(variantsPerPatient) >= input$nbRepCoOc, ]
 	
 		# Test if at least 2 genes remain
-		if(length(variantsPerPatient) <= n) {print("No data to display.");return()}
+		if(length(variantsPerPatient) <= n) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		nbGenes = dim(variantsPerPatient)[1] # Number of genes that can be mutated several times
 		n = dim(variantsPerPatient)[2] # Number of patients with mutations
@@ -942,7 +942,7 @@ shinyServer <- function(input, output) {
 		genesToKeep = colSums(ORMat, na.rm=T) != max(ORMat, na.rm=T)
 		
 		# Test if at least 2 genes remain
-		if(sum(genesToKeep) < 2) {print("No data to display.");return()}
+		if(sum(genesToKeep) < 2) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat = ORMat[genesToKeep, genesToKeep]
 
@@ -951,6 +951,8 @@ shinyServer <- function(input, output) {
 
 	output$varCoOc <- renderD3heatmap({
 		ORMat = coOcOR()[[1]]
+
+		if(ORMat == "Nothing to display."){return()} # No data to display
 
 		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
@@ -993,7 +995,7 @@ shinyServer <- function(input, output) {
 		# Test if at least 1 gene remains
 		n = dim(variantsPerDisease)
 		nbMut = sum(variantsPerDisease)
-		if(!n[2]) {print("No data to display.");return()}
+		if(!n[2]) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
 
@@ -1025,15 +1027,18 @@ shinyServer <- function(input, output) {
 		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
 		
 		# Test if at least 1 OR is left
-		if(sum(genesToKeep) < 1) {print("No data to display.");return()}
+		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat = ORMat[diagnosesToKeep, genesToKeep]
 		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
+
 		return(list(ORMat, pvalMat))
 	})
 
 	output$varDisOc <- renderD3heatmap({
 		ORMat = disOcOR()[[1]]
+
+		if(ORMat == "Nothing to display."){return()} # No data to display
 
 		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})

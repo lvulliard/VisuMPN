@@ -33,6 +33,8 @@ Implement basic cohort description plots
 
 * Co-expression matrices
 * Legend on heatmap
+* Display heatmap even for a single row or column
+
 
 ### Patient-specific data
 
