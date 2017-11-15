@@ -150,6 +150,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						id = "histCohortPlotTab"
 					),
 					tabPanel(title = "Data",
+						div(downloadButton('histCohortDL', 'Download'),style="float:right"),
 						dataTableOutput("histCohortTable"),
 						id = "histCohortDataTab"
 					),
@@ -197,6 +198,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						id = "ScatCohortPlotTab"
 					),
 					tabPanel(title = "Data",
+						div(downloadButton('scatCohortDL', 'Download'),style="float:right"),
 						dataTableOutput("scatCohortTable"),
 						id = "ScatCohortDataTab"
 					),
@@ -247,6 +249,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						id = "ViolCohortPlotTab"
 					),
 					tabPanel(title = "Data",
+						div(downloadButton('violCohortDL', 'Download'),style="float:right"),
 						dataTableOutput("violCohortTable"),
 						id = "ViolCohortDataTab"
 					),
@@ -293,6 +296,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						id = "PieCohortPlotTab"
 					),
 					tabPanel(title = "Filtered data",
+						div(downloadButton('pieCohortDL', 'Download'),style="float:right"),
 						dataTableOutput("pieCohortTable"),
 						id = "PieCohortDataTab"
 					),
@@ -655,7 +659,7 @@ shinyServer <- function(input, output) {
 		}
 	})
 
-	# Return tables with selected data
+	# Return tables with selected data and generate corresponding files
 
 	output$histCohortTable <- renderDataTable({
 		dt = variableInfo(input$plotVariable)()
@@ -668,6 +672,21 @@ shinyServer <- function(input, output) {
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
 	})
+
+	output$histCohortDL <- downloadHandler(
+		filename = "cohort_histogram.csv",
+		content = function(file) {
+			dt = variableInfo(input$plotVariable)()
+			colToExport = c(1,dt[[3]])
+			if(input$plotFactor != "Nothing"){
+				dt2 = variableInfo(input$plotFactor)()
+				colToExport = append(colToExport, dt2[[3]])
+			}
+			tmpframe = data.frame(dataCohort[,colToExport])
+			names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+			write.csv(tmpframe, file)
+		}
+	)
 
 	output$scatCohortTable <- renderDataTable({
 		dt1 = variableInfo(input$plotVariableX)()
@@ -682,6 +701,22 @@ shinyServer <- function(input, output) {
 		tmpframe
 	})
 
+	output$scatCohortDL <- downloadHandler(
+		filename = "cohort_scatter_plot.csv",
+		content = function(file) {
+			dt1 = variableInfo(input$plotVariableX)()
+			dt2 = variableInfo(input$plotVariableY)()
+			colToExport = c(1,dt1[[3]], dt2[[3]])
+			if(input$plotVariableCol != "Nothing"){
+				dt3 = variableInfo(input$plotVariableCol)()
+				colToExport = append(colToExport, dt3[[3]])
+			}
+			tmpframe = data.frame(dataCohort[,colToExport])
+			names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+			write.csv(tmpframe, file)
+		}
+	)
+
 	output$violCohortTable <- renderDataTable({
 		dt = variableInfo(input$plotVariableViolin)()
 		dt2 = variableInfo(input$plotFactorViolin)()
@@ -691,12 +726,34 @@ shinyServer <- function(input, output) {
 		tmpframe
 	})
 
+	output$violCohortDL <- downloadHandler(
+		filename = "cohort_violin_plot.csv",
+		content = function(file) {
+			dt = variableInfo(input$plotVariableViolin)()
+			dt2 = variableInfo(input$plotFactorViolin)()
+			colToExport = c(1,dt[[3]],dt2[[3]])
+			tmpframe = data.frame(dataCohort[,colToExport])
+			names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+			write.csv(tmpframe, file)
+		}
+	)
+
 	output$pieCohortTable <- renderDataTable({
 		colToExport = c(1,unlist(dataCohortTypes[dataCohortTypes[,2] %in% input$plotVariablesPie,3]))
 		tmpframe = data.frame(dataCohort[,colToExport])
 		names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
 		tmpframe
 	})
+
+	output$pieCohortDL <- downloadHandler(
+		filename = "cohort_pie_chart.csv",
+		content = function(file) {
+			colToExport = c(1,unlist(dataCohortTypes[dataCohortTypes[,2] %in% input$plotVariablesPie,3]))
+			tmpframe = data.frame(dataCohort[,colToExport])
+			names(tmpframe) = unlist(dataCohortTypes[colToExport,2])
+			write.csv(tmpframe, file)
+		}
+	)
 
 	output$varTable <- renderDataTable({
 		filteredDataVariants()
