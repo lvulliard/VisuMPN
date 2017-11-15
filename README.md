@@ -32,7 +32,6 @@ Implement basic cohort description plots
 ### Variants exploration
 
 * Co-expression matrices
-* Occurrence per disease matrices
 * Legend on heatmap
 
 ### Patient-specific data
