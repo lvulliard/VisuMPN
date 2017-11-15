@@ -292,7 +292,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								plotOutput("pieCohort")),
 						id = "PieCohortPlotTab"
 					),
-					tabPanel(title = "Data",
+					tabPanel(title = "Filtered data",
 						dataTableOutput("pieCohortTable"),
 						id = "PieCohortDataTab"
 					),
@@ -466,25 +466,36 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 			)
 		),
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
-			d3heatmapOutput("varDisOc", height = "600px"),
-			fluidRow(
-				column(6,
-					sliderInput(inputId = "alphaDisOc",
-						label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-						min = 0,
-						max = 1, 
-						value = 0.4
+			tabsetPanel(
+				tabPanel(title = "Plot",
+					d3heatmapOutput("varDisOc", height = "550px"),
+					fluidRow(
+						column(6,
+							sliderInput(inputId = "alphaDisOc",
+								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+								min = 0,
+								max = 1, 
+								value = 0.4
+							)
+						),
+						column(6,
+							sliderInput(inputId = "nbRepDisOc",
+								label = "Minimal amount of mutations per gene:",
+								min=1,
+								max=18,
+								value = 3
+							)
+						)
 					)
 				),
-				column(6,
-					sliderInput(inputId = "nbRepDisOc",
-						label = "Minimal amount of mutations per gene:",
-						min=1,
-						max=18,
-						value = 3
-					)
-				)
-			)
+				tabPanel(title = "Data - Odds-ratios",
+					dataTableOutput("varDisOcORTable")
+				),
+				tabPanel(title = "Data - Corrected p-values",
+					dataTableOutput("varDisOcPvalTable")
+				),
+			id = "varDisOcTabs"
+			)	
 		),
 		tabPanel(title = "Variants data - Data",
 			dataTableOutput("varTable"),
@@ -856,7 +867,8 @@ shinyServer <- function(input, output) {
 	})
 
 	# Gene mutations per disease
-	output$varDisOc <- renderD3heatmap({
+
+	disOcOR <- reactive({
 		dataset = filteredDataVariants()
 		variantsPerDisease = table(dataset$diagnosis, dataset$GENESYMBOL)
 		variantsPerDisease = variantsPerDisease[rowSums(variantsPerDisease) > 0, colSums(variantsPerDisease) > 0]
@@ -902,8 +914,24 @@ shinyServer <- function(input, output) {
 		if(sum(genesToKeep) < 1) {print("No data to display.");return()}
 
 		ORMat = ORMat[diagnosesToKeep, genesToKeep]
+		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
+		return(list(ORMat, pvalMat))
+	})
+
+	output$varDisOc <- renderD3heatmap({
+		ORMat = disOcOR()[[1]]
 
 		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
+	})
+
+	output$varDisOcORTable <- renderDataTable({
+		tab = disOcOR()[[1]]
+		return(cbind(diagnosis = rownames(tab), tab))
+	})
+
+	output$varDisOcPvalTable <- renderDataTable({
+		tab = disOcOR()[[2]]
+		return(cbind(diagnosis = rownames(tab), tab))
 	})
 
 	# Variant per sample matrix
