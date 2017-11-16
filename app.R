@@ -523,21 +523,26 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					d3heatmapOutput("varSubDisOc", height = "550px"),
 					fluidRow(
-						column(6,
+						column(4,
 							sliderInput(inputId = "alphaSubDisOc",
 								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 								min = 0,
 								max = 1, 
-								value = 1
+								value = 0.98
 							)
 						),
-						column(6,
+						column(4,
 							sliderInput(inputId = "nbRepSubDisOc",
 								label = "Minimal amount of mutations per gene:",
 								min=1,
 								max=11,
-								value = 2
+								value = 7
 							)
+						),
+						column(4,
+							radioButtons("subTypeAll", label = "Subtypes:",
+							choices = c("PMF & ET", "All"),
+							selected = "PMF & ET", inline = TRUE)
 						)
 					)
 				),
@@ -988,7 +993,7 @@ shinyServer <- function(input, output) {
 	output$varCoOc <- renderD3heatmap({
 		ORMat = coOcOR()[[1]]
 
-		if(ORMat == "Nothing to display."){return()} # No data to display
+		if(class(ORMat) == "character"){return()} # No data to display
 
 		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
@@ -1031,10 +1036,16 @@ shinyServer <- function(input, output) {
 		# Remove JAK2 and CALR
 		variantsPerDisease = variantsPerDisease[,!(colnames(variantsPerDisease) %in% c("JAK2", "CALR"))]
 
+		if(input$subTypeAll == "PMF & ET"){
+			# Keep only PMF and ET subtypes
+			variantsPerDisease = variantsPerDisease[rownames(variantsPerDisease) %in% c("ET-JAK2-wt-CALR-mutated", "ET-JAK2-mutated-CALR-wt",
+				"PMF-JAK2-mutated-CALR-wt", "PMF-JAK2-wt-CALR-mutated"),]
+		}
+
 		# Test if at least 1 gene remains
 		n = dim(variantsPerDisease)
 		nbMut = sum(variantsPerDisease)
-		if(!n[2]) {print("No data to display.");return()}
+		if(!n[2]) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
 
@@ -1065,7 +1076,7 @@ shinyServer <- function(input, output) {
 		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
 		
 		# Test if at least 1 OR is left
-		if(sum(genesToKeep) < 1) {print("No data to display.");return()}
+		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat = ORMat[diagnosesToKeep, genesToKeep]
 		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
@@ -1074,6 +1085,8 @@ shinyServer <- function(input, output) {
 
 	output$varSubDisOc <- renderD3heatmap({
 		ORMat = subDisOcOR()[[1]]
+	
+		if(class(ORMat) == "character"){return()} # No data to display
 
 		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none", yaxis_width = 300, yaxis_font_size = 7)		
 	})
@@ -1158,7 +1171,7 @@ shinyServer <- function(input, output) {
 	output$varDisOc <- renderD3heatmap({
 		ORMat = disOcOR()[[1]]
 
-		if(ORMat == "Nothing to display."){return()} # No data to display
+		if(class(ORMat) == "character"){return()} # No data to display
 
 		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
 	})
