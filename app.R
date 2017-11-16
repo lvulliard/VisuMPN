@@ -892,7 +892,6 @@ shinyServer <- function(input, output) {
 					subset[(subset$snp129 != ".") & (subset$cosmic70 == "."),]$VAR_ID)
 			}
 		}))
-		
 	}
 
 	# Filter out non-canonical transcripts
@@ -1022,6 +1021,43 @@ shinyServer <- function(input, output) {
 		}
 	)
 
+	# Common fisher test function for mutation per subtype and per disease
+	fisherMutationMatrices <- function(variantsPerDisease, alphaRisk){
+		n = dim(variantsPerDisease)
+		nbMut = sum(variantsPerDisease)
+
+		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
+
+		# Fisher's exact tests on contigency tables for each pair of gene and disease
+		for(x in 1:n[1]){
+			for(y in 1:n[2]){
+				cntgTab = data.frame(c(variantsPerDisease[x,y], sum(variantsPerDisease[,y]) - variantsPerDisease[x,y]),
+					c(sum(variantsPerDisease[x,]) - variantsPerDisease[x,y], 
+						nbMut + variantsPerDisease[x,y] - sum(variantsPerDisease[,y]) - sum(variantsPerDisease[x,]) ))
+				fTest = fisher.test(cntgTab)
+				ORMat[x,y] = fTest$estimate
+				pvalMat[x,y] = fTest$p.value
+			}
+		}
+
+		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
+		ORMat[ORMat == -1] <- max(ORMat)
+
+		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
+		colnames(pvalMat) = colnames(ORMat)
+		rownames(pvalMat) = rownames(ORMat)
+		is.na(ORMat) <- pvalMat > alphaRisk # Convert non-significant odds-ratios to NA
+
+		# Remove rows without any information
+		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]+0.1 # Ensure that the non-NA values are positive
+		genesToKeep = colSums(ORMat, na.rm=T) > 0 # Check the sums by columns and rows to detect empty features
+		diagnosesToKeep = rowSums(ORMat, na.rm=T) > 0
+		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
+
+		return(list(genesToKeep, diagnosesToKeep, ORMat, pvalMat))
+	}
+
+
 
 	# Gene mutations per subtype
 
@@ -1044,42 +1080,20 @@ shinyServer <- function(input, output) {
 
 		# Test if at least 1 gene remains
 		n = dim(variantsPerDisease)
-		nbMut = sum(variantsPerDisease)
 		if(!n[2]) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
-		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
-
-		# Fisher's exact tests on contigency tables for each pair of gene and disease
-		for(x in 1:n[1]){
-			for(y in 1:n[2]){
-				cntgTab = data.frame(c(variantsPerDisease[x,y], sum(variantsPerDisease[,y]) - variantsPerDisease[x,y]),
-					c(sum(variantsPerDisease[x,]) - variantsPerDisease[x,y], 
-						nbMut + variantsPerDisease[x,y] - sum(variantsPerDisease[,y]) - sum(variantsPerDisease[x,]) ))
-				fTest = fisher.test(cntgTab)
-				ORMat[x,y] = fTest$estimate
-				pvalMat[x,y] = fTest$p.value
-			}
-		}
-
-		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
-		ORMat[ORMat == -1] <- max(ORMat)
-
-		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
-		colnames(pvalMat) = colnames(ORMat)
-		rownames(pvalMat) = rownames(ORMat)
-		is.na(ORMat) <- pvalMat > input$alphaSubDisOc # Convert non-significant odds-ratios to NA
-
-		# Remove rows without any information
-		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]+0.1 # Ensure that the non-NA values are positive
-		genesToKeep = colSums(ORMat, na.rm=T) > 0 # Check the sums by columns and rows to detect empty features
-		diagnosesToKeep = rowSums(ORMat, na.rm=T) > 0
-		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
+		fisherList = fisherMutationMatrices(variantsPerDisease, input$alphaSubDisOc)
+		genesToKeep = fisherList[[1]]
+		diagnosesToKeep = fisherList[[2]]
+		ORMat = fisherList[[3]]
+		pvalMat = fisherList[[4]]
 		
 		# Test if at least 1 OR is left
 		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
 		ORMat = ORMat[diagnosesToKeep, genesToKeep]
 		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
+
 		return(list(ORMat, pvalMat))
 	})
 
@@ -1127,37 +1141,13 @@ shinyServer <- function(input, output) {
 	
 		# Test if at least 1 gene remains
 		n = dim(variantsPerDisease)
-		nbMut = sum(variantsPerDisease)
 		if(!n[2]) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
-		ORMat <- pvalMat <- as.data.frame.matrix(variantsPerDisease)
-
-		# Fisher's exact tests on contigency tables for each pair of gene and disease
-		for(x in 1:n[1]){
-			for(y in 1:n[2]){
-
-				cntgTab = data.frame(c(variantsPerDisease[x,y], sum(variantsPerDisease[,y]) - variantsPerDisease[x,y]),
-					c(sum(variantsPerDisease[x,]) - variantsPerDisease[x,y], 
-						nbMut + variantsPerDisease[x,y] - sum(variantsPerDisease[,y]) - sum(variantsPerDisease[x,]) ))
-				fTest = fisher.test(cntgTab)
-				ORMat[x,y] = fTest$estimate
-				pvalMat[x,y] = fTest$p.value
-			}
-		}
-
-		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
-		ORMat[ORMat == -1] <- max(ORMat)
-
-		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
-		colnames(pvalMat) = colnames(ORMat)
-		rownames(pvalMat) = rownames(ORMat)
-		is.na(ORMat) <- pvalMat > input$alphaDisOc # Convert non-significant odds-ratios to NA
-
-		# Remove rows without any information
-		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]+0.1 # Ensure that the non-NA values are positive
-		genesToKeep = colSums(ORMat, na.rm=T) > 0 # Check the sums by columns and rows to detect empty features
-		diagnosesToKeep = rowSums(ORMat, na.rm=T) > 0
-		ORMat[!is.na(ORMat)] <- ORMat[!is.na(ORMat)]-0.1 # Reverse to original OR values
+		fisherList = fisherMutationMatrices(variantsPerDisease, input$alphaDisOc)
+		genesToKeep = fisherList[[1]]
+		diagnosesToKeep = fisherList[[2]]
+		ORMat = fisherList[[3]]
+		pvalMat = fisherList[[4]]
 		
 		# Test if at least 1 OR is left
 		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
