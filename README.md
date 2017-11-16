@@ -25,16 +25,14 @@ Implement basic cohort description plots
 
 ### Cohort exploration
 
-* Display patient IDs on histogram
 * Take into account NAs, non relevant-points and redundancy
 * Sort legend on matrices and pie charts
 
 ### Variants exploration
 
 * Co-expression matrices
-* Legend on heatmap
+* Legend on heatmap and explicit color scheme
 * Display heatmap even for a single row or column
-
 
 ### Patient-specific data
 

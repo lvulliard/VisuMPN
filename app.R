@@ -453,23 +453,19 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					d3heatmapOutput("varCoOc", height = "550px"),
-					fluidRow(
-		    			column(6,
-					    	sliderInput(inputId = "alphaCoOc",
-								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-								min = 0,
-								max = 1, 
-								value = 0.04
-							)
+					mainPanel(d3heatmapOutput("varCoOc", height = "550px", width =  "600px")),
+					sidebarPanel(
+						sliderInput(inputId = "alphaCoOc",
+							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+							min = 0,
+							max = 1, 
+							value = 0.04
 						),
-						column(6,
-							sliderInput(inputId = "nbRepCoOc",
-								label = "Minimal amount of patients with variants per gene:",
-								min=1,
-								max=18,
-								value = 4
-							)
+						sliderInput(inputId = "nbRepCoOc",
+							label = "Minimal amount of patients with variants per gene:",
+							min=1,
+							max=18,
+							value = 4
 						)
 					)
 				),
@@ -487,23 +483,19 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					d3heatmapOutput("varDisOc", height = "550px"),
-					fluidRow(
-						column(6,
-							sliderInput(inputId = "alphaDisOc",
-								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-								min = 0,
-								max = 1, 
-								value = 0.4
-							)
+					mainPanel(d3heatmapOutput("varDisOc", height = "550px", width =  "600px")),
+					sidebarPanel(
+						sliderInput(inputId = "alphaDisOc",
+							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+							min = 0,
+							max = 1, 
+							value = 0.4
 						),
-						column(6,
-							sliderInput(inputId = "nbRepDisOc",
-								label = "Minimal amount of mutations per gene:",
-								min=1,
-								max=18,
-								value = 3
-							)
+						sliderInput(inputId = "nbRepDisOc",
+							label = "Minimal amount of mutations per gene:",
+							min=1,
+							max=18,
+							value = 3
 						)
 					)
 				),
@@ -521,29 +513,23 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations in disease subtypes",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					d3heatmapOutput("varSubDisOc", height = "550px"),
-					fluidRow(
-						column(4,
-							sliderInput(inputId = "alphaSubDisOc",
-								label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
-								min = 0,
-								max = 1, 
-								value = 0.98
-							)
+					mainPanel(d3heatmapOutput("varSubDisOc", height = "550px", width =  "750px")),
+					sidebarPanel(
+						sliderInput(inputId = "alphaSubDisOc",
+							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+							min = 0,
+							max = 1, 
+							value = 0.98
 						),
-						column(4,
-							sliderInput(inputId = "nbRepSubDisOc",
-								label = "Minimal amount of mutations per gene:",
-								min=1,
-								max=11,
-								value = 7
-							)
+						sliderInput(inputId = "nbRepSubDisOc",
+							label = "Minimal amount of mutations per gene:",
+							min=1,
+							max=11,
+							value = 7
 						),
-						column(4,
-							radioButtons("subTypeAll", label = "Subtypes:",
+						radioButtons("subTypeAll", label = "Subtypes:",
 							choices = c("PMF & ET", "All"),
 							selected = "PMF & ET", inline = TRUE)
-						)
 					)
 				),
 				tabPanel(title = "Data - Odds-ratios",
@@ -572,8 +558,7 @@ shinyServer <- function(input, output) {
 		return(reactive({dataCohortTypes[dataCohortTypes[,2] == var,]}))
 	}
 
-	# Histogram of chosen cohort descriptive variables
-	output$histCohort <- renderPlotly({
+	histCohortObject <- reactive({
 		dt = variableInfo(input$plotVariable)()
 		if(input$plotFactor == "Nothing"){
 			gp1 = ggplot(dataCohort, aes_string(dt[[1]])) + geom_histogram(color = color.palette$second, 
@@ -588,7 +573,12 @@ shinyServer <- function(input, output) {
 		}
 		margpy1 <- list(l=45, r=5, b=40, t=5) # margins on each side
 		gpy1 = ggplotly(gp1 + theme_light()) %>% layout(margin=margpy1)
-		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+		gpy1 = style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+	})
+
+	# Histogram of chosen cohort descriptive variables
+	output$histCohort <- renderPlotly({
+		histCohortObject()
 	})
 
 	# Scatter plot of chosen cohort descriptive variables
@@ -606,7 +596,6 @@ shinyServer <- function(input, output) {
 		}
 		gpy1 = ggplotly(gp1 + theme_light())
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
-
 	})
 
 	# Violin plots of chosen cohort descriptive variables
@@ -701,7 +690,17 @@ shinyServer <- function(input, output) {
  			"Click on a bar to get its corresponding value"
 		}
 		else{
-			paste0("x=", click_event$x, "\ny=", click_event$y)
+			binsCenters = histCohortObject()$x$data[[1]]$x
+			complement = ""
+			if(length(binsCenters) > 1){
+				binsize = binsCenters[2] - binsCenters[1]
+				values = variableInfo(input$plotVariable)()[[1]]
+				patientInBin = dataCohort[ (dataCohort[,values] <= click_event$x + binsize/2)&
+					(dataCohort[,values]  >= click_event$x - binsize/2),]$unique.sample.id
+				complement = paste(patientInBin, collapse="\n")
+				complement = paste0("\nSamples: ", complement)
+			}
+			paste0("x=", click_event$x, "\ny=", click_event$y, complement)
 		}
 	})
 
@@ -994,7 +993,7 @@ shinyServer <- function(input, output) {
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
+		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none")		
 	})
 
 	output$varCoOcORTable <- renderDataTable({
@@ -1102,7 +1101,7 @@ shinyServer <- function(input, output) {
 	
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none", yaxis_width = 300, yaxis_font_size = 7)		
+		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none", yaxis_width = 300, yaxis_font_size = 7)		
 	})
 
 	output$varSubDisOcORTable <- renderDataTable({
@@ -1163,7 +1162,7 @@ shinyServer <- function(input, output) {
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = F, dendrogram = "none")		
+		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none")		
 	})
 
 	output$varDisOcORTable <- renderDataTable({
