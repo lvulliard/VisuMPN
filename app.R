@@ -15,9 +15,12 @@ library(heatmaply)
 
 # Define constants
 color.palette = c()
-color.palette$main = "#FF6600"
+color.palette$main = "#00ace6"
 color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
+color.palette$function_multi = colorRampPalette(brewer.pal(12, "Set3"))
+# Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
+color.palette$function_bimod = colorRampPalette(c(#00bfff","#b3ecff",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
 
 
 # Load cohort data
@@ -453,7 +456,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "600px")),
+					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "650px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaCoOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -483,7 +486,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "600px")),
+					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "650px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -645,7 +648,7 @@ shinyServer <- function(input, output) {
 		}			
 		gp1 = gp1 + theme(aspect.ratio=1) + 
 			scale_x_continuous(breaks = 1:nbVarSelected + 0.5, labels = input$plotVariablesPie) +
-			scale_fill_manual(guide = guide_legend(title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors))
+			scale_fill_manual(guide = guide_legend(title = NULL), values = color.palette$function_multi(nbFactors))
  		
 		gpy1 = ggplotly(gp1 + theme_light()) 
 
@@ -676,7 +679,7 @@ shinyServer <- function(input, output) {
 				xmin=ifelse(input$pieLogScale, log(i), i)))
 		}			
 		gp1 = gp1 + xlim(c(ifelse(input$pieLogScale, 0, 1), ifelse(input$pieLogScale, log(nbVarSelected+1), nbVarSelected+1))) + theme(aspect.ratio=1) + 
-			scale_fill_manual(guide = guide_legend(ncol = nbVarSelected, title = NULL), values = colorRampPalette(brewer.pal(12, "Set3"))(nbFactors)) +
+			scale_fill_manual(guide = guide_legend(ncol = nbVarSelected, title = NULL), values = color.palette$function_multi(nbFactors)) +
 			scale_x_discrete() + # Remove radial legend
 			coord_polar(theta="y")
 	
@@ -993,8 +996,9 @@ shinyServer <- function(input, output) {
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		heatmaply(ORMat, symm = T, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none",
-			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Row", "Column", "OR"), colorbar_len = 1)		
+		heatmaply(ORMat, symm = T, na.rm = T, colors = color.palette$function_bimod, show_grid = T, dendrogram = "none",
+			na.value=color.palette$function_bimod(256)[256], margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, 
+			label_names = c("Row", "Column", "OR"), colorbar_len = 1)		
 	})
 
 	output$varCoOcORTable <- renderDataTable({
@@ -1102,8 +1106,9 @@ shinyServer <- function(input, output) {
 	
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		heatmaply(ORMat, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none", 
-			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Subtype", "Gene", "OR"), colorbar_len = 1)		
+		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T,
+			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", 
+			margins = c(75,200,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Subtype", "Gene", "OR"), colorbar_len = 1)		
 	})
 
 	output$varSubDisOcORTable <- renderDataTable({
@@ -1164,8 +1169,9 @@ shinyServer <- function(input, output) {
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		heatmaply(ORMat, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none",
-			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Disease", "Gene", "OR"), colorbar_len = 1)		
+		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T, 
+			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", margins = c(75,75,NA,0), limits = c(0,20), 
+			grid_gap=2, label_names = c("Disease", "Gene", "OR"), colorbar_len = 1)		
 	})
 
 	output$varDisOcORTable <- renderDataTable({
