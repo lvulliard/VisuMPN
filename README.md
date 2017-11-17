@@ -31,7 +31,6 @@ Implement basic cohort description plots
 ### Variants exploration
 
 * Co-expression matrices
-* Legend on heatmap and explicit color scheme
 * Display heatmap even for a single row or column
 
 ### Patient-specific data

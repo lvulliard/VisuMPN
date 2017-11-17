@@ -3,7 +3,7 @@ library(shinyBS)
 library(plotly)
 library(ggplot2)
 library(RColorBrewer)
-library(d3heatmap)
+library(heatmaply)
 
 # Define functions
 
@@ -453,7 +453,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(d3heatmapOutput("varCoOc", height = "550px", width =  "600px")),
+					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "600px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaCoOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -483,7 +483,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(d3heatmapOutput("varDisOc", height = "550px", width =  "600px")),
+					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "600px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -513,7 +513,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations in disease subtypes",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(d3heatmapOutput("varSubDisOc", height = "550px", width =  "750px")),
+					mainPanel(plotlyOutput("varSubDisOc", height = "600px", width =  "800px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaSubDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -961,8 +961,8 @@ shinyServer <- function(input, output) {
 			}
 		}
 
-		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
-		ORMat[ORMat == -1] <- max(ORMat)
+		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value + 1
+		ORMat[ORMat == -1] <- max(ORMat) + 1
 
 		# Benjamini-Hochberg
 		all_pval_bh = p.adjust(all_pval, method="BH")
@@ -988,12 +988,13 @@ shinyServer <- function(input, output) {
 		return(list(ORMat, pvalMat))		
 	})
 
-	output$varCoOc <- renderD3heatmap({
+	output$varCoOc <- renderPlotly({
 		ORMat = coOcOR()[[1]]
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, symm = T, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none")		
+		heatmaply(ORMat, symm = T, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none",
+			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Row", "Column", "OR"), colorbar_len = 1)		
 	})
 
 	output$varCoOcORTable <- renderDataTable({
@@ -1039,8 +1040,8 @@ shinyServer <- function(input, output) {
 			}
 		}
 
-		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value 
-		ORMat[ORMat == -1] <- max(ORMat)
+		ORMat[ORMat == Inf] <- -1 # Replace infinite OR (mutual association) by 2nd biggest value + 1
+		ORMat[ORMat == -1] <- max(ORMat) + 1
 
 		pvalMat = matrix(p.adjust(unlist(pvalMat), method="BH"), ncol=ncol(pvalMat), byrow = F) # Benjamini-Hochberg FDR
 		colnames(pvalMat) = colnames(ORMat)
@@ -1096,12 +1097,13 @@ shinyServer <- function(input, output) {
 		return(list(ORMat, pvalMat))
 	})
 
-	output$varSubDisOc <- renderD3heatmap({
+	output$varSubDisOc <- renderPlotly({
 		ORMat = subDisOcOR()[[1]]
 	
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none", yaxis_width = 300, yaxis_font_size = 7)		
+		heatmaply(ORMat, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none", 
+			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Subtype", "Gene", "OR"), colorbar_len = 1)		
 	})
 
 	output$varSubDisOcORTable <- renderDataTable({
@@ -1157,12 +1159,13 @@ shinyServer <- function(input, output) {
 		return(list(ORMat, pvalMat))
 	})
 
-	output$varDisOc <- renderD3heatmap({
+	output$varDisOc <- renderPlotly({
 		ORMat = disOcOR()[[1]]
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		d3heatmap(ORMat, na.rm = T, colors = "GnBu", show_grid = T, dendrogram = "none")		
+		heatmaply(ORMat, na.rm = T, colors = colorRampPalette(brewer.pal(9, "GnBu")), show_grid = T, dendrogram = "none",
+			margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Disease", "Gene", "OR"), colorbar_len = 1)		
 	})
 
 	output$varDisOcORTable <- renderDataTable({
