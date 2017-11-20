@@ -30,9 +30,13 @@ Implement basic cohort description plots
 
 ### Variants exploration
 
-* Co-expression matrices
+* Correct color scheme of one by one matrices
 
-### Patient-specific data
+### Gene expression exploration
+
+### Aberrations exploration
+
+### Patient-specific data and differential splicing antigen summary
 
 ### Interface and texts
 

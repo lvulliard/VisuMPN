@@ -18,7 +18,7 @@ color.palette = c()
 color.palette$main = "#00ace6"
 color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
-color.palette$function_multi = colorRampPalette(brewer.pal(12, "Set3"))
+color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
 color.palette$function_bimod = colorRampPalette(c("#00bfff","#b3ecff",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
 
@@ -700,6 +700,7 @@ shinyServer <- function(input, output) {
 				values = variableInfo(input$plotVariable)()[[1]]
 				patientInBin = dataCohort[ (dataCohort[,values] <= click_event$x + binsize/2)&
 					(dataCohort[,values]  >= click_event$x - binsize/2),]$unique.sample.id
+				patientInBin = patientInBin[!is.na(patientInBin)]
 				complement = paste(patientInBin, collapse="\n")
 				complement = paste0("\nSamples: ", complement)
 			}
@@ -1208,10 +1209,22 @@ shinyServer <- function(input, output) {
 		dataset$UNIQ_SAMPLE_ID = factor(dataset$UNIQ_SAMPLE_ID, levels = unique((dataset$UNIQ_SAMPLE_ID)[order(dataset$diagnosis, dataset$mutLoad)]))
 		# Sort gene symbols by frequency
 		dataset$GENESYMBOL = factor(dataset$GENESYMBOL, levels = names(sort(table(dataset$GENESYMBOL))))
-		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = diagnosis)) + 
-			geom_tile(color= color.palette$second) + labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
+		dataset = dataset[order(dataset$diagnosis),]
+
+		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = CADD_phred, text = diagnosis)) + 
+			geom_raster() +
+			labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
 			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
-		ggplotly(gp1)
+		gpy1 = ggplotly(gp1) 
+		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
+		
+		gp2 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = 1, fill = diagnosis)) + geom_raster() +
+			labs(x = "Sample ID", y = "Diagnosis", caption = "Hover to get values") +
+			scale_fill_manual(guide = guide_legend(title = NULL), values = color.palette$function_multi(length(levels(dataset$diagnosis)))) +
+			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
+		gpy2 = ggplotly(gp2)
+
+		subplot(gpy1, gpy2, nrows = 2, shareX = T, shareY = T, heights = c(0.9,0.1))
 	})
 }
 
