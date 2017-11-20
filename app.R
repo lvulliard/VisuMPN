@@ -994,7 +994,7 @@ shinyServer <- function(input, output) {
 	output$varCoOc <- renderPlotly({
 		ORMat = coOcOR()[[1]]
 
-		if(class(ORMat) == "character"){return()} # No data to display
+		if(class(ORMat) != "matrix"){return()} # No data to display
 
 		heatmaply(ORMat, symm = T, na.rm = T, colors = color.palette$function_bimod, show_grid = T, dendrogram = "none",
 			na.value=color.palette$function_bimod(256)[256], margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, 
@@ -1095,8 +1095,8 @@ shinyServer <- function(input, output) {
 		# Test if at least 1 OR is left
 		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
-		ORMat = ORMat[diagnosesToKeep, genesToKeep]
-		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
+		ORMat = ORMat[diagnosesToKeep, genesToKeep, drop=F] # Keep data.frame format even for single elements
+		pvalMat = pvalMat[diagnosesToKeep, genesToKeep, drop=F]
 
 		return(list(ORMat, pvalMat))
 	})
@@ -1104,7 +1104,7 @@ shinyServer <- function(input, output) {
 	output$varSubDisOc <- renderPlotly({
 		ORMat = subDisOcOR()[[1]]
 	
-		if(class(ORMat) == "character"){return()} # No data to display
+		if(class(ORMat) != "data.frame"){return()} # No data to display
 
 		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T,
 			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", key.title = "Odds-ratios",
@@ -1158,8 +1158,8 @@ shinyServer <- function(input, output) {
 		# Test if at least 1 OR is left
 		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
-		ORMat = ORMat[diagnosesToKeep, genesToKeep]
-		pvalMat = pvalMat[diagnosesToKeep, genesToKeep]
+		ORMat = ORMat[diagnosesToKeep, genesToKeep, drop=F] # Keep data.frame format even for single elements
+		pvalMat = pvalMat[diagnosesToKeep, genesToKeep, drop=F]
 
 		return(list(ORMat, pvalMat))
 	})
@@ -1167,7 +1167,7 @@ shinyServer <- function(input, output) {
 	output$varDisOc <- renderPlotly({
 		ORMat = disOcOR()[[1]]
 
-		if(class(ORMat) == "character"){return()} # No data to display
+		if(class(ORMat) != "data.frame"){return()} # No data to display
 
 		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T, key.title = "Odds-ratios",
 			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", margins = c(75,75,NA,0), limits = c(0,20), 
