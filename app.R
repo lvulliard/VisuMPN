@@ -1,7 +1,7 @@
 library(shiny)
 library(shinyBS)
-library(plotly)
 library(ggplot2)
+library(plotly)
 library(RColorBrewer)
 library(heatmaply)
 
@@ -20,7 +20,7 @@ color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
 color.palette$function_multi = colorRampPalette(brewer.pal(12, "Set3"))
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
-color.palette$function_bimod = colorRampPalette(c(#00bfff","#b3ecff",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
+color.palette$function_bimod = colorRampPalette(c("#00bfff","#b3ecff",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
 
 
 # Load cohort data
@@ -456,7 +456,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Co-occurrence of mutations",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "650px")),
+					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "680px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaCoOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -486,7 +486,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations per disease",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "650px")),
+					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "680px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -516,7 +516,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Occurrence of mutations in disease subtypes",
 			tabsetPanel(
 				tabPanel(title = "Plot",
-					mainPanel(plotlyOutput("varSubDisOc", height = "600px", width =  "800px")),
+					mainPanel(plotlyOutput("varSubDisOc", height = "550px", width =  "800px")),
 					sidebarPanel(
 						sliderInput(inputId = "alphaSubDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
@@ -998,7 +998,7 @@ shinyServer <- function(input, output) {
 
 		heatmaply(ORMat, symm = T, na.rm = T, colors = color.palette$function_bimod, show_grid = T, dendrogram = "none",
 			na.value=color.palette$function_bimod(256)[256], margins = c(75,75,NA,0), limits = c(0,20), grid_gap=2, 
-			label_names = c("Row", "Column", "OR"), colorbar_len = 1)		
+			label_names = c("Row", "Column", "OR"), colorbar_len = 1, key.title = "Odds-ratios")
 	})
 
 	output$varCoOcORTable <- renderDataTable({
@@ -1107,7 +1107,7 @@ shinyServer <- function(input, output) {
 		if(class(ORMat) == "character"){return()} # No data to display
 
 		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T,
-			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", 
+			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", key.title = "Odds-ratios",
 			margins = c(75,200,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Subtype", "Gene", "OR"), colorbar_len = 1)		
 	})
 
@@ -1169,7 +1169,7 @@ shinyServer <- function(input, output) {
 
 		if(class(ORMat) == "character"){return()} # No data to display
 
-		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T, 
+		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T, key.title = "Odds-ratios",
 			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", margins = c(75,75,NA,0), limits = c(0,20), 
 			grid_gap=2, label_names = c("Disease", "Gene", "OR"), colorbar_len = 1)		
 	})
@@ -1202,6 +1202,12 @@ shinyServer <- function(input, output) {
 	# Variant per sample matrix
 	output$varBinMat <- renderPlotly({
 		dataset = filteredDataVariants()
+		# Sort samples by diagnosis then by mutational load
+		mutLoads = table(dataset$UNIQ_SAMPLE_ID)
+		dataset$mutLoad = sapply(dataset$UNIQ_SAMPLE_ID, function(x) -mutLoads[names(mutLoads) == x][[1]])
+		dataset$UNIQ_SAMPLE_ID = factor(dataset$UNIQ_SAMPLE_ID, levels = unique((dataset$UNIQ_SAMPLE_ID)[order(dataset$diagnosis, dataset$mutLoad)]))
+		# Sort gene symbols by frequency
+		dataset$GENESYMBOL = factor(dataset$GENESYMBOL, levels = names(sort(table(dataset$GENESYMBOL))))
 		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = diagnosis)) + 
 			geom_tile(color= color.palette$second) + labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
 			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
