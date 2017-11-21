@@ -327,7 +327,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						bsModal("modalMAFFilter", "Minor Allele Frequency", "modMAFFilterLink", size = "large",
 							HTML(paste0("You can filter by Minor Allele Frequency (MAF) estimated either in the whole 1000 genomes ",
 								"project or by super population.<br/>Variants often found in the healthy cohort of the 1000 genomes ",
-								"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with",
+								"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with ",
 								"unknown MAF values are unaffected by this filter.")) 
 						), # Information pop-up
 						div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info")),
@@ -611,14 +611,14 @@ shinyServer <- function(input, output) {
 		gpy1 = ggplotly(gp1 + theme_light()) %>% layout(margin=margpy1)
 
 		# Manually modify hoverinfo
-		nbFactors = length(levels(dataCohort[,dt2[[3]]]))
+		# Columns with one point or less don't have a density component
+		nbFactors = sum(table(dataCohort[!is.na(dataCohort[,dt[[3]]]),dt2[[3]]]) > 1) 
 		for(i in 1:nbFactors){
 			# Remove duplicated annotation of qualitative variable on density lines
 			gpy1$x$data[[i]]$text = gsub("^[^>]*>", "", gpy1$x$data[[i]]$text)
 		}
 		# Add sample ID to each point
 		gpy1$x$data[[nbFactors+1]]$text = paste0(gpy1$x$data[[nbFactors+1]]$text, paste0("<br />", dataCohort$unique.sample.id))
-
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
