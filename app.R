@@ -104,7 +104,7 @@ dataVariants$subdiagnosis <- paste(dataVariants$diagnosis, ifelse(dataVariants$j
 
 # Explanatory text displayed in variant heatmaps
 modalVarHeatmapText = HTML(paste0("The heatmaps display association between features through odds-ratios observed in the data.",
-								"<br/>An odds-ratio of 0 corresponds to mutual exclusion whereas an infitine odds-ratio corresponds ",
+								"<br/>An odds-ratio of 0 corresponds to mutual exclusion whereas an infinite odds-ratio corresponds ",
 								"to a mutual inclusion. For displaying purposes, the infinite values are replaced here by the ",
 								"biggest values observed in the data plus one.<br/>Because of the finite sample size, the computed ",
 								"association might not be significant, and therefore an exact Fisher test is performed, giving the ",
@@ -894,8 +894,9 @@ shinyServer <- function(input, output) {
 		}
 
 		bsCollapsePanel(stringencyPanelName,
-			p(paste0(nbControlUnfilteredVariants, " out of ", nbControlVariants,
-				" normal variants are kept by applying these filters.")),
+			HTML(paste0(nbControlUnfilteredVariants, " out of ", nbControlVariants,
+				" normal variants are kept by applying these filters.<br/>They are subsequently considered as somatic variants and ",
+				"removed for the following analyses.")),
 			style = stringencyPanelType
 		)
 	})
