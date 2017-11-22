@@ -26,7 +26,7 @@ Implement basic cohort description plots
 ### Cohort exploration
 
 * Take into account NAs, non relevant-points and redundancy
-* Sort legend on matrices and pie charts
+* Sort legend on pie charts
 
 ### Variants exploration
 

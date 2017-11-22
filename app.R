@@ -374,11 +374,12 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 						bsModal("modalAnnFilter", "Annotation and evidence", "modAnnFilterLink", size = "large",
 							HTML(paste0("You can filter by counts of reads supporting the presence of the variant (ALT counts).<br/>",
 								"The more mutant sequencing reads mapping at the variant location, the stronger the evidence ",
-								"of the variant is.<br/>You may choose to keep variants with low ALT counts if they are annotated ",
+								"of the variant.<br/>You may choose to keep variants with low ALT counts if they are annotated ",
 								"in the COSMIC database, which means that the variant has already been identified as a cancer ",
-								"germline variant in previous study.<br/>Moreover, even for high ALT counts, you may want to filter ",
-								"out variants having a rs ID from dbSNP and no COSMIC ID, meaning that the variants have already been ",
-								"previously observed but not yet linked to cancer and are therefore likely to be germline variants.")) 
+								"germline variant in a previous study.<br/>Moreover, even for high ALT counts, you may want to ",
+								"filter out variants having a rsID from dbSNP and no COSMIC ID, meaning that the variants have ",
+								"already been previously observed but not yet linked to cancer and are therefore likely to be ",
+								"germline variants.")) 
 						), # Information pop-up
 						div(bsButton("modAnnFilterLink", label = " More info", icon = icon("info")),
 							style="float:right"),
@@ -634,10 +635,13 @@ shinyServer <- function(input, output) {
 		# Sort the data by columns in input vector and count total number of factors in plot
 		sortedDataCohort = dataCohort
 		nbFactors = 0
+		factorGroups = c()
 		for(i in rev(input$plotVariablesPie)){
 			dt = variableInfo(i)()
 			sortedDataCohort = sortedDataCohort[order(sortedDataCohort[,dt[[3]]]),]
-			nbFactors = nbFactors + length(levels(sortedDataCohort[,dt[[3]]]))
+			nbFactor = length(levels(sortedDataCohort[,dt[[3]]]))
+			nbFactors = nbFactors + nbFactor
+			factorGroups = append(factorGroups, rep(dt[[2]], nbFactor))
 		}
 
 		gp1 = ggplot(sortedDataCohort, aes(text = unique.sample.id))
@@ -650,6 +654,13 @@ shinyServer <- function(input, output) {
 			scale_x_continuous(breaks = 1:nbVarSelected + 0.5, labels = input$plotVariablesPie) +
 			scale_fill_manual(guide = guide_legend(title = NULL), values = color.palette$function_multi(nbFactors))
  		
+ 		# Group legends
+		factorGroups = rev(factorGroups)
+		elementsLegend = sapply(gpy1$x$data, function(x) x$showlegend)
+		for(i in length(elementsLegend)){
+			gpy1$x$data[elementsLegend[i]]$legendgroup = factorGroups[i] 
+		}
+
 		gpy1 = ggplotly(gp1 + theme_light()) 
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
