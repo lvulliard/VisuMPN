@@ -15,12 +15,12 @@ library(heatmaply)
 
 # Define constants
 color.palette = c()
-color.palette$main = "#00ace6"
+color.palette$main = "#40B9D4"
 color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
-color.palette$function_bimod = colorRampPalette(c("#00bfff","#b3ecff",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
+color.palette$function_bimod = colorRampPalette(c("#00bfff","#c1e8f1",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
 
 
 # Load cohort data
@@ -114,13 +114,14 @@ modalVarHeatmapText = HTML(paste0("The heatmaps display association between feat
 								"only for a specified false discovery rate."))
 
 # Define client UI
-shinyUi <- navbarPage(title = "MPN cohort data visualization",
+shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
+		href = "http://cemm.at/")),
 	# Starting tab
 	tabPanel(title = "What's this?",
+		includeCSS("www/theme.css"), # Load CSS file
 		p(paste("This web application allows the user to explore interactively data from a cohort of 113 myeloproliferative neoplasm",
 			"(MPN) blood donors and 15 healthy blood controls."))
 	),
-
 	# Cohort presentation tabs
 	navbarMenu(title = "Explore the cohort",
 		# Histograms tab
@@ -341,7 +342,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"project are likely to be germline variants and not somatic variants.<br/>NB.: variants with ",
 								"unknown MAF values are unaffected by this filter.")) 
 						), # Information pop-up
-						div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info")),
+						div(bsButton("modMAFFilterLink", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
 						sliderInput(inputId = "varMAFFilterALL",
 							label = "Maximum MAF in 1000 Genomes Project in the whole cohort:",
@@ -392,7 +393,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"already been previously observed but not yet linked to cancer and are therefore likely to be ",
 								"germline variants.")) 
 						), # Information pop-up
-						div(bsButton("modAnnFilterLink", label = " More info", icon = icon("info")),
+						div(bsButton("modAnnFilterLink", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
 						sliderInput(inputId = "varAnnFilterALT",
 							label = "Minimum ALT count:",
@@ -412,7 +413,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"transcript, as annotated on the ENSEMBL database.<br/>These variants could be false positives ",
 								"and you may choose to filter them out."))
 						), # Information pop-up
-						div(bsButton("modCanFilterLink", label = " More info", icon = icon("info")),
+						div(bsButton("modCanFilterLink", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
 						checkboxInput(inputId = "canonicalTranscriptFilter", label = "Filter out non-canonical transcripts",
 							value = TRUE),
@@ -433,7 +434,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 								"Finally the variants can be filtered by mutant allele frequency, to ensure the variant is really ",
 								"present on one or both chromosomes."))
 						), # Information pop-up
-						div(bsButton("modAddFilterLink", label = " More info", icon = icon("info")),
+						div(bsButton("modAddFilterLink", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
 						sliderInput(inputId = "varSIFTFilter",
 							label = "Maximum SIFT score:",
@@ -470,8 +471,10 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "680px")),
 					sidebarPanel(
-						div(bsButton("modVarHeatmapsLink1", label = " More info", icon = icon("info")),
+						div(bsButton("modVarHeatmapsLink1", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
+						bsModal("modalVarHeatmaps1", "Variants heatmaps", "modVarHeatmapsLink1", size = "large",
+							modalVarHeatmapText),
 						sliderInput(inputId = "alphaCoOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -502,8 +505,10 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "680px")),
 					sidebarPanel(
-						div(bsButton("modVarHeatmapsLink2", label = " More info", icon = icon("info")),
+						div(bsButton("modVarHeatmapsLink2", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
+						bsModal("modalVarHeatmaps2", "Variants heatmaps", "modVarHeatmapsLink2", size = "large",
+							modalVarHeatmapText),
 						sliderInput(inputId = "alphaDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -534,8 +539,10 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varSubDisOc", height = "550px", width =  "800px")),
 					sidebarPanel(
-						div(bsButton("modVarHeatmapsLink3", label = " More info", icon = icon("info")),
+						div(bsButton("modVarHeatmapsLink3", label = " More info", icon = icon("info-circle")),
 							style="float:right"),
+						bsModal("modalVarHeatmaps3", "Variants heatmaps", "modVarHeatmapsLink3", size = "large",
+							modalVarHeatmapText),
 						sliderInput(inputId = "alphaSubDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -567,13 +574,7 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Data",
 			div(downloadButton('varDL', 'Download'),style="float:right"),
 			dataTableOutput("varTable"),
-			id = "varDataTab"),
-		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink1", size = "large",
-							modalVarHeatmapText),
-		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink2", size = "large",
-							modalVarHeatmapText),
-		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink3", size = "large",
-							modalVarHeatmapText) # Information pop-up on fisher tests
+			id = "varDataTab")
 	)
 )
 
