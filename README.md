@@ -20,6 +20,14 @@ Filter variants to select only the somatic mutations with sufficient evidence. R
 
 Implement basic cohort description plots
 
+### v0.2
+
+Implement basic variants description plots
+
+### v0.3
+
+Implement full CSS layout
+
 
 ## To-do list
 

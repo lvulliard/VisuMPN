@@ -113,6 +113,14 @@ modalVarHeatmapText = HTML(paste0("The heatmaps display association between feat
 								"a Benjamini-Hochberg FDR correction is performed. You can then choose to display the odds-ratios ",
 								"only for a specified false discovery rate."))
 
+# Load aberrations
+dataAberrations = read.table("chrom_abberations_fixed_ids_merge_rnaseq.csv", 
+	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
+
+# Load fusions
+dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
+	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
+
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
 		href = "http://cemm.at/")),
@@ -575,6 +583,16 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			div(downloadButton('varDL', 'Download'),style="float:right"),
 			dataTableOutput("varTable"),
 			id = "varDataTab")
+	),
+	navbarMenu(title = "Explore aberrations/fusions",
+		tabPanel(title = "Aberrations - Data",
+			div(downloadButton('aberDL', 'Download'),style="float:right"),
+			dataTableOutput("aberTable"),
+			id = "aberDataTab"),
+		tabPanel(title = "Fusions - Data",
+			div(downloadButton('fusDL', 'Download'),style="float:right"),
+			dataTableOutput("fusTable"),
+			id = "fusDataTab")
 	)
 )
 
@@ -1262,6 +1280,35 @@ shinyServer <- function(input, output) {
 
 		subplot(gpy1, gpy2, nrows = 2, shareX = T, shareY = T, heights = c(0.9,0.1))
 	})
+
+
+	# Aberrations exploration
+
+	output$aberDL <- downloadHandler(
+		filename = "aberrations.csv",
+		content = function(file) {
+			write.csv(dataAberrations, file)
+		}
+	)
+
+	output$aberTable <- renderDataTable({
+		dataAberrations
+	})
+
+
+	# Fusions exploration
+
+	output$fusDL <- downloadHandler(
+		filename = "fusions.csv",
+		content = function(file) {
+			write.csv(dataFusions, file)
+		}
+	)
+
+	output$fusTable <- renderDataTable({
+		dataFusions
+	})
+
 }
 
 # Start Shiny app
