@@ -102,6 +102,17 @@ dataVariants$SIFT_score <- as.numeric(dataVariants$SIFT_score)
 # Create subclasses of ET and PMF based on CALR and JAK2 mutations
 dataVariants$subdiagnosis <- paste(dataVariants$diagnosis, ifelse(dataVariants$jak2, "JAK2-mutated", "JAK2-wt"), ifelse(dataVariants$calr, "CALR-mutated", "CALR-wt"), sep = "-")
 
+# Explanatory text displayed in variant heatmaps
+modalVarHeatmapText = HTML(paste0("The heatmaps display association between features through odds-ratios observed in the data.",
+								"<br/>An odds-ratio of 0 corresponds to mutual exclusion whereas an infitine odds-ratio corresponds ",
+								"to a mutual inclusion. For displaying purposes, the infinite values are replaced here by the ",
+								"biggest values observed in the data plus one.<br/>Because of the finite sample size, the computed ",
+								"association might not be significant, and therefore an exact Fisher test is performed, giving the ",
+								"probability of observing such an association by chance if the underlying distribution does not ",
+								"favor any inclusion or exclusion (p-value).<br/>To take into account the number of tests performed ",
+								"a Benjamini-Hochberg FDR correction is performed. You can then choose to display the odds-ratios ",
+								"only for a specified false discovery rate."))
+
 # Define client UI
 shinyUi <- navbarPage(title = "MPN cohort data visualization",
 	# Starting tab
@@ -459,6 +470,8 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varCoOc", height = "550px", width =  "680px")),
 					sidebarPanel(
+						div(bsButton("modVarHeatmapsLink1", label = " More info", icon = icon("info")),
+							style="float:right"),
 						sliderInput(inputId = "alphaCoOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -489,6 +502,8 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varDisOc", height = "550px", width =  "680px")),
 					sidebarPanel(
+						div(bsButton("modVarHeatmapsLink2", label = " More info", icon = icon("info")),
+							style="float:right"),
 						sliderInput(inputId = "alphaDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -519,6 +534,8 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 				tabPanel(title = "Plot",
 					mainPanel(plotlyOutput("varSubDisOc", height = "550px", width =  "800px")),
 					sidebarPanel(
+						div(bsButton("modVarHeatmapsLink3", label = " More info", icon = icon("info")),
+							style="float:right"),
 						sliderInput(inputId = "alphaSubDisOc",
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
@@ -550,7 +567,13 @@ shinyUi <- navbarPage(title = "MPN cohort data visualization",
 		tabPanel(title = "Variants data - Data",
 			div(downloadButton('varDL', 'Download'),style="float:right"),
 			dataTableOutput("varTable"),
-			id = "varDataTab")
+			id = "varDataTab"),
+		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink1", size = "large",
+							modalVarHeatmapText),
+		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink2", size = "large",
+							modalVarHeatmapText),
+		bsModal("modalVarHeatmaps", "Variants heatmaps", "modVarHeatmapsLink3", size = "large",
+							modalVarHeatmapText) # Information pop-up on fisher tests
 	)
 )
 
@@ -654,14 +677,14 @@ shinyServer <- function(input, output) {
 			scale_x_continuous(breaks = 1:nbVarSelected + 0.5, labels = input$plotVariablesPie) +
 			scale_fill_manual(guide = guide_legend(title = NULL), values = color.palette$function_multi(nbFactors))
  		
- 		# Group legends
+		gpy1 = ggplotly(gp1 + theme_light()) 
+
+		# Group legends
 		factorGroups = rev(factorGroups)
 		elementsLegend = sapply(gpy1$x$data, function(x) x$showlegend)
-		for(i in length(elementsLegend)){
-			gpy1$x$data[elementsLegend[i]]$legendgroup = factorGroups[i] 
+		for(i in 1:sum(elementsLegend)){
+			gpy1$x$data[[which(elementsLegend)[i]]]$legendgroup = factorGroups[i]
 		}
-
-		gpy1 = ggplotly(gp1 + theme_light()) 
 
 		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 	})
