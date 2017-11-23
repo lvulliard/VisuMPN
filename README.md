@@ -46,7 +46,9 @@ Implement full CSS layout
 
 ### Gene expression exploration
 
-### Aberrations exploration
+### Aberrations and fusions exploration
+
+* Add option to remove control samples
 
 ### Patient-specific data and differential splicing antigen summary
 
