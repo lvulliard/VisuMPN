@@ -4,6 +4,7 @@ library(ggplot2)
 library(plotly)
 library(RColorBrewer)
 library(heatmaply)
+library(stringr)
 
 # Define functions
 
@@ -117,13 +118,45 @@ modalVarHeatmapText = HTML(paste0("The heatmaps display association between feat
 dataAberrations = read.table("chrom_abberations_fixed_ids_merge_rnaseq.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
 
+# Correct line wrongly annotated
+dataAberrations[dataAberrations$unique.sample.id == "P098A#A",4:12] <- 
+	dataAberrations[dataAberrations$unique.sample.id == "P098A#C",4:12]
+
+# Filter
+filterDuplicatedDonors <- function(samplesList){
+	# Unique patient ID
+	patient = str_extract(samplesList, "^.\\d*")
+	# Visit
+	visit = str_extract(samplesList, ".(?=#)")
+	# Batch
+	batch = str_extract(samplesList, ".$")
+	# Keep sample?
+	keepSample = rep(T, length(patient))
+
+	patientVisit = paste(patient,visit)
+	uPatientVisit = unique(patientVisit)
+	patientVisitToReject = uPatientVisit[duplicated(str_extract(uPatientVisit, "^.\\d*"))]
+	keepSample[patientVisit %in% patientVisitToReject] <- F
+
+	uSamplesList = unique(samplesList)
+	batchesToReject = uSamplesList[duplicated(str_extract(uSamplesList, "^[^#]*"))]
+	keepSample[samplesList %in% batchesToReject] <- F
+
+	return(keepSample)
+}
+
+dataAberrations = dataAberrations[filterDuplicatedDonors(dataAberrations$unique.sample.id),]
+
+# Families of aberrations
+dataAberrations$family = with(dataAberrations, paste0(chr, chr.arm, type.of.aberration))
+
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
 
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
-		href = "http://cemm.at/")),
+		href = "http://cemm.at/")), windowTitle = "MPN vizualization",
 	# Starting tab
 	tabPanel(title = "What's this?",
 		includeCSS("www/theme.css"), # Load CSS file
