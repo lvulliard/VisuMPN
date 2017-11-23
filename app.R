@@ -118,9 +118,11 @@ modalVarHeatmapText = HTML(paste0("The heatmaps display association between feat
 dataAberrations = read.table("chrom_abberations_fixed_ids_merge_rnaseq.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
 
-# Correct line wrongly annotated
+# Correct lines wrongly annotated
 dataAberrations[dataAberrations$unique.sample.id == "P098A#A",4:12] <- 
 	dataAberrations[dataAberrations$unique.sample.id == "P098A#C",4:12]
+dataAberrations[dataAberrations$unique.sample.id == "P079C#A" & dataAberrations$start.bp.hg18 == 63750000, c(9,11)] <-
+	c(64000000, 64024960)
 
 # Filter
 filterDuplicatedDonors <- function(samplesList){
@@ -148,7 +150,8 @@ filterDuplicatedDonors <- function(samplesList){
 dataAberrations = dataAberrations[filterDuplicatedDonors(dataAberrations$unique.sample.id),]
 
 # Families of aberrations
-dataAberrations$family = with(dataAberrations, paste0(chr, chr.arm, type.of.aberration))
+dataAberrations$family = as.factor(with(dataAberrations, paste0(chr, chr.arm, type.of.aberration)))
+
 
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
@@ -618,6 +621,46 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			id = "varDataTab")
 	),
 	navbarMenu(title = "Explore aberrations/fusions",
+		tabPanel(title = "Co-occurrence of mutations and aberrations",
+			tabsetPanel(
+				tabPanel(title = "Plot",
+					mainPanel(plotlyOutput("aberVarOc", height = "550px", width =  "750px")),
+					sidebarPanel(
+						div(bsButton("modVarHeatmapsLink4", label = " More info", icon = icon("info-circle")),
+							style="float:right"),
+						bsModal("modalVarHeatmaps4", "Variants heatmaps", "modVarHeatmapsLink4", size = "large",
+							modalVarHeatmapText),
+						sliderInput(inputId = "alphaAberVarOc",
+							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
+							min = 0,
+							max = 1, 
+							value = 0.3
+						),
+						sliderInput(inputId = "nbRepAberVarOcVar",
+							label = "Minimal frequency of mutations:",
+							min=1,
+							max=18,
+							value = 9
+						),
+						sliderInput(inputId = "nbRepAberVarOcAber",
+							label = "Minimal frequency of aberrations:",
+							min=1,
+							max=25,
+							value = 5
+						)
+					)
+				),
+				tabPanel(title = "Data - Odds-ratios",
+					div(downloadButton('aberVarOcORDL', 'Download'),style="float:right"),
+					dataTableOutput("aberVarOcORTable")
+				),
+				tabPanel(title = "Data - Corrected p-values",
+					div(downloadButton('aberVarOcPvalDL', 'Download'),style="float:right"),
+					dataTableOutput("aberVarOcPvalTable")
+				),
+				id = "aberVarOcTabs"
+			)	
+		),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
 			dataTableOutput("aberTable"),
@@ -1223,6 +1266,7 @@ shinyServer <- function(input, output) {
 		}
 	)
 
+
 	# Gene mutations per disease
 
 	disOcOR <- reactive({
@@ -1327,6 +1371,94 @@ shinyServer <- function(input, output) {
 	output$aberTable <- renderDataTable({
 		dataAberrations
 	})
+
+	aberVarOcOR <- reactive({
+		dataset = filteredDataVariants()
+		variantsPerSample = table(gsub("_[^_]*$", "", dataset$UNIQ_SAMPLE_ID), dataset$GENESYMBOL)
+		print(dim(variantsPerSample))
+		# Remove genes with insufficient number of variants observed in the dataset
+		variantsPerSample = variantsPerSample[rowSums(variantsPerSample) > 0, colSums(variantsPerSample) >= input$nbRepAberVarOcVar]
+		variantsPerSample = variantsPerSample != 0 # Discard the number of mutation per patient
+
+		aberrationsPerSample = table(dataAberrations$sample.id, dataAberrations$family)
+		colnames(aberrationsPerSample)[colnames(aberrationsPerSample) == ""] = "No aberr."
+		print(dim(aberrationsPerSample))
+
+		# Remove aberrations with insufficient count observed in the dataset
+		aberrationsPerSample = aberrationsPerSample[rowSums(aberrationsPerSample) > 0, 
+			colSums(aberrationsPerSample) >= input$nbRepAberVarOcAber] != 0
+		
+		# Only keep common samples
+		commonSamples = intersect(rownames(aberrationsPerSample), rownames(variantsPerSample))
+		aberrationsPerSample = aberrationsPerSample[rownames(aberrationsPerSample) %in% commonSamples,]
+		variantsPerSample = variantsPerSample[rownames(variantsPerSample) %in% commonSamples,] 
+
+		# Clear again the empty the columns
+		aberrationsPerSample = aberrationsPerSample[,colSums(aberrationsPerSample) > 0]
+		variantsPerSample = variantsPerSample[,colSums(variantsPerSample) > 0]
+
+		# Test if at least 1 gene remains
+		n = dim(variantsPerSample)
+		if(!n[2]) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
+
+		# Sanity check
+		print(dim(aberrationsPerSample))
+		print(dim(variantsPerSample))
+		if(!all(colnames(t(aberrationsPerSample)) == rownames(variantsPerSample))){
+			print("No match between variants and aberrations samples")
+			return(list("Nothing to display.","Nothing to display."))
+		}
+
+		aberrationsPerVariants = t(aberrationsPerSample) %*% variantsPerSample
+
+		fisherList = fisherMutationMatrices(aberrationsPerVariants, input$alphaAberVarOc)
+		genesToKeep = fisherList[[1]]
+		aberrationsToKeep = fisherList[[2]]
+		ORMat = fisherList[[3]]
+		pvalMat = fisherList[[4]]
+		
+		# Test if at least 1 OR is left
+		if(sum(genesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
+
+		ORMat = ORMat[aberrationsToKeep, genesToKeep, drop=F] # Keep data.frame format even for single elements
+		pvalMat = pvalMat[aberrationsToKeep, genesToKeep, drop=F]
+
+		return(list(ORMat, pvalMat))
+	})
+
+	output$aberVarOc <- renderPlotly({
+		ORMat = aberVarOcOR()[[1]]
+	
+		if(class(ORMat) != "data.frame"){return()} # No data to display
+
+		heatmaply(ORMat, na.rm = T, colors = color.palette$function_bimod, show_grid = T,
+			na.value=color.palette$function_bimod(256)[256], dendrogram = "none", key.title = "Odds-ratios",
+			margins = c(75,150,NA,0), limits = c(0,20), grid_gap=2, label_names = c("Aberrations", "Variants", "OR"), colorbar_len = 1)		
+	})
+
+	output$aberVarOcORTable <- renderDataTable({
+		tab = aberVarOcOR()[[1]]
+		return(cbind(aberration = rownames(tab), tab))
+	})
+
+	output$aberVarOcPvalTable <- renderDataTable({
+		tab = aberVarOcOR()[[2]]
+		return(cbind(aberration = rownames(tab), tab))
+	})
+
+	output$aberVarOcPvalDL <- downloadHandler(
+		filename = "variants_aberrations_pval.csv",
+		content = function(file) {
+			write.csv(aberVarOcOR()[[2]], file)
+		}
+	)
+
+	output$aberVarOcORDL <- downloadHandler(
+		filename = "variants_aberrations_OR.csv",
+		content = function(file) {
+			write.csv(aberVarOcOR()[[1]], file)
+		}
+	)
 
 
 	# Fusions exploration
