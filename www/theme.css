@@ -7029,4 +7029,7 @@ a.list-group-item-danger.active:focus {
   .navbar-header a{
     color: #FFFFFF;
   }
+  body{
+    padding-top: 70px;
+  }
 }

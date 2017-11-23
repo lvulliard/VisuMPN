@@ -156,7 +156,7 @@ dataFusions = read.table("rnaseq_fusions_only_validated.csv",
 
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
-		href = "http://cemm.at/")), windowTitle = "MPN vizualization",
+		href = "http://cemm.at/")), windowTitle = "MPN vizualization", position = "fixed-top",
 	# Starting tab
 	tabPanel(title = "What's this?",
 		includeCSS("www/theme.css"), # Load CSS file
