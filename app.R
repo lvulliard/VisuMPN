@@ -21,7 +21,7 @@ color.palette$second = "#FFFFFF"
 color.palette$bg = "#FFFFFF"
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
-color.palette$function_bimod = colorRampPalette(c("#00bfff","#c1e8f1",colorRampPalette(c("#ffffff", "#ffcc80", "#ffad33", "#ff9900"))(21) ))
+color.palette$function_bimod = colorRampPalette(c("#00bfff","#c1e8f1",colorRampPalette(c("#ffffff", "#ffd466", "#ffc533", "#f8b100"))(21) ))
 
 
 # Load cohort data
@@ -705,6 +705,17 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 				id = "aberDisOcTabs"
 			)	
 		),
+		tabPanel(title = "Fusion - Patient summary",
+			sidebarPanel(
+				selectInput(inputId = "fusSumSample",
+							label = "Patient:",
+							choices = unique(sort(dataCohort$unique.sample.id.no.batch)),
+							selected = 1,
+							multiple = FALSE
+				)
+			),
+			mainPanel(),
+			id = "fusSum"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
 			dataTableOutput("aberTable"),
