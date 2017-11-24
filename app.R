@@ -215,7 +215,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
-						plotlyOutput("histCohort"),
+						plotlyOutput("histCohort", height = 600),
 						verbatimTextOutput("infoClick"), # Display click coordinates
 						id = "histCohortPlotTab"
 					),
@@ -264,7 +264,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
-						plotlyOutput("scatCohort"),
+						plotlyOutput("scatCohort", height = 600),
 						id = "ScatCohortPlotTab"
 					),
 					tabPanel(title = "Data",
@@ -315,7 +315,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			mainPanel(
 				tabsetPanel(
 					tabPanel(title = "Plot",
-						plotlyOutput("violCohort"),
+						plotlyOutput("violCohort", height = 600),
 						id = "ViolCohortPlotTab"
 					),
 					tabPanel(title = "Data",
@@ -359,10 +359,10 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 					tabPanel(title = "Plot",
 						conditionalPanel(
 							condition = "input.pieOrMatrix == \"Matrix\"",
-								plotlyOutput("matrixCohort")),
+								plotlyOutput("matrixCohort", height = 600)),
 						conditionalPanel(
 							condition = "input.pieOrMatrix == \"Pie chart\"",
-								plotOutput("pieCohort")),
+								plotOutput("pieCohort", width = 600, height = 600)),
 						id = "PieCohortPlotTab"
 					),
 					tabPanel(title = "Filtered data",
@@ -683,14 +683,15 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 							label = "Alpha risk (with Benjamini-Hochberg FDR correction):",
 							min = 0,
 							max = 1, 
-							value = 0.3
+							value = 0.2
 						),
 						sliderInput(inputId = "nbRepAberDisOc",
 							label = "Minimal frequency of aberrations:",
 							min=1,
 							max=12,
 							value = 5
-						)
+						),
+						checkboxInput(inputId = "aberDisControl", label = "Include control samples", value = FALSE)
 					)
 				),
 				tabPanel(title = "Data - Odds-ratios",
@@ -1509,6 +1510,11 @@ shinyServer <- function(input, output) {
 
 		rownames(aberrationsPerDisease)[rownames(aberrationsPerDisease) == ""] = "No aberr."
 		
+		# Remove control samples if needed
+		if(!input$aberDisControl){
+			aberrationsPerDisease = aberrationsPerDisease[,colnames(aberrationsPerDisease) != "Control"]
+		}
+		
 		# Remove aberrations with insufficient count observed in the dataset
 		aberrationsPerDisease = aberrationsPerDisease[rowSums(aberrationsPerDisease) >= input$nbRepAberDisOc,
 			colSums(aberrationsPerDisease) > 0]
@@ -1519,8 +1525,6 @@ shinyServer <- function(input, output) {
 		ORMat = fisherList[[3]]
 		pvalMat = fisherList[[4]]
 
-		print(fisherList)
-		
 		# Test if at least 1 OR is left
 		if(sum(diagnosesToKeep) < 1) {print("No data to display.");return(list("Nothing to display.","Nothing to display."))}
 
