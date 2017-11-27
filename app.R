@@ -1613,15 +1613,12 @@ shinyServer <- function(input, output) {
 			patientData$fusion = dataFusions[dataFusions$EXTERNAL_ID == input$fusSumSample,]
 		}
 
-		# dataVariants
-		# UNIQ_SAMPLE_ID 488e_JM
 		if(patientData$clinical$sample.id.variant.file.format %in% dataVariants$UNIQ_SAMPLE_ID){
-			patientData$Variant = dataVariants[dataVariants$UNIQ_SAMPLE_ID == patientData$clinical$sample.id.variant.file.format,]
+			patientData$variant = dataVariants[dataVariants$UNIQ_SAMPLE_ID == patientData$clinical$sample.id.variant.file.format,]
 		}
 		
-		# dataAberrations unique.sample.id C001A#A
 		if(input$fusSumSample %in% dataAberrations$unique.sample.id){
-			patientData$fusion = dataAberrations[dataAberrations$unique.sample.id == input$fusSumSample,]
+			patientData$aberration = dataAberrations[dataAberrations$unique.sample.id == input$fusSumSample,]
 		}
 
 		return(patientData)
