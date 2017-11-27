@@ -5,6 +5,7 @@ library(plotly)
 library(RColorBrewer)
 library(heatmaply)
 library(stringr)
+library(chorddiag)
 
 # Define functions
 
@@ -165,6 +166,8 @@ dataAberrations$family = as.factor(with(dataAberrations, paste0(chr, chr.arm, ty
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
+
+dataFusions
 
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
@@ -709,12 +712,12 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			sidebarPanel(
 				selectInput(inputId = "fusSumSample",
 							label = "Patient:",
-							choices = unique(sort(dataCohort$unique.sample.id.no.batch)),
+							choices = sort(dataCohort$unique.sample.id),
 							selected = 1,
 							multiple = FALSE
 				)
 			),
-			mainPanel(),
+			mainPanel(textOutput("fusSumPrint")),
 			id = "fusSum"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
@@ -1592,6 +1595,36 @@ shinyServer <- function(input, output) {
 
 	output$fusTable <- renderDataTable({
 		dataFusions
+	})
+
+	output$fusSum <- renderPlot({
+		fusGetAllInfoPatient()
+	})
+
+	output$fusSumPrint <- renderPrint({
+		print(fusGetAllInfoPatient())
+	})
+
+	fusGetAllInfoPatient <- reactive({
+		patientData = list()
+		patientData$clinical = dataCohort[dataCohort$unique.sample.id == input$fusSumSample,]
+			
+		if(input$fusSumSample %in% dataFusions$EXTERNAL_ID){
+			patientData$fusion = dataFusions[dataFusions$EXTERNAL_ID == input$fusSumSample,]
+		}
+
+		# dataVariants
+		# UNIQ_SAMPLE_ID 488e_JM
+		if(patientData$clinical$sample.id.variant.file.format %in% dataVariants$UNIQ_SAMPLE_ID){
+			patientData$Variant = dataVariants[dataVariants$UNIQ_SAMPLE_ID == patientData$clinical$sample.id.variant.file.format,]
+		}
+		
+		# dataAberrations unique.sample.id C001A#A
+		if(input$fusSumSample %in% dataAberrations$unique.sample.id){
+			patientData$fusion = dataAberrations[dataAberrations$unique.sample.id == input$fusSumSample,]
+		}
+
+		return(patientData)
 	})
 
 }
