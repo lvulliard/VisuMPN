@@ -5,7 +5,7 @@ library(plotly)
 library(RColorBrewer)
 library(heatmaply)
 library(stringr)
-library(chorddiag)
+library(BioCircos)
 
 # Define functions
 
@@ -717,7 +717,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 							multiple = FALSE
 				)
 			),
-			mainPanel(textOutput("fusSumPrint")),
+			mainPanel(BioCircosOutput("fusSumCircos"), textOutput("fusSumPrint")),
 			id = "fusSum"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
@@ -1603,6 +1603,16 @@ shinyServer <- function(input, output) {
 
 	output$fusSumPrint <- renderPrint({
 		print(fusGetAllInfoPatient())
+	})
+
+	# Generate Circos plot for the selected patient
+	output$fusSumCircos <- renderBioCircos({
+		patientInfo = fusGetAllInfoPatient()
+		tracks = BioCircosSNPTrack("testTrack1", as.character(rep(1:10,10)), round(runif(100, 1, 135534747)), 
+			runif(100, 0, 10), colors = "Spectral", minRadius = 0.3, maxRadius = 0.45)
+		BioCircos(tracks, genomeFillColor = "Spectral", yChr = T, chrPad = 0, displayGenomeBorder = F, 
+			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
+			genomeLabelTextSize = 18, genomeLabelDy = 0)
 	})
 
 	fusGetAllInfoPatient <- reactive({

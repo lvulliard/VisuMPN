@@ -1,0 +1,239 @@
+sample.id	unique.sample.id	snp6.0.sample.id	snp6.0.cell.type	type.of.aberration	chr	chr.arm	start.bp.hg18	end.bp.hg18	start.bp.hg19	end.bp.hg19	source	published.in	published.sample.id	comments	alternate.chr.coord.hg18
+H_0010B	P001B#B	H_0010A	GD	gain	3	q	164300000	199501827	162817306	198022430	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8	end-of-chr	
+H_0010B	P001B#B	H_0010A	GD	UPD	14	q	58000000	106368585	58930247	107349540	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8	end-of-chr;H_0010B exists; processed on 9.4.2010	
+H_0010B	P001B#E	H_0010A	GD	UPD	14	q	58000000	106368585	58930247	107349540	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8	end-of-chr	
+H_0010B	P001B#E	H_0010A	GD	gain	3	q	164300000	199501827	162817306	198022430	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8	end-of-chr	
+H_0156A	P025A#A	H_0156A	GD	UPD	14	q	34040000	106368585	34970249	107349540	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_126	end-of-chr	
+H_0156A	P025A#E	H_0156A	GD	UPD	14	q	34040000	106368585	34970249	107349540	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_126	end-of-chr	
+H_0166A	P031A#A	H_0166A	MD	gain	14	p+q	1	106368585	1	107349540	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_134	end-of-chr	
+H_0166A	P031A#A	H_0166A	MD	deletion	7	q	81250000	158821424	81412064	159138663	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_134	end-of-chr	
+H_0210C	P043C#A	H_0210A	MD	gain	9	p	1	140273252	1	141213431	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_168	end-of-chr	
+H_0371A	P061A#A	H_0371A	GD	deletion	Y	p+q	1	57772954	1	59373566	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_256	end-of-chr	
+H_0436A	P067A#B	H_0436A	GD	gain	8	p+q	1	146274826	1	146364022	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_274	end-of-chr	
+H_0458A	P071A#A	H_0458A	GD	UPD	14	q	99800000	106368585	100730247	107349540	6.0-db-final1219			end-of-chr;hidden	
+H_0797A	P103A#A	H_0797A	GD	trisomy	9	p+q	1	140273252	1	141213431	vienna-new6.0			end-of-chr;ROH?	
+112c	P108A#D	112c	PMN	deletion	20	q	32150000	62435964	32686339	63025520	jmilosevic-sAML			end-of-chr;full	
+112c	P108A#D	112c	PMN	deletion	4	p+q	11000000	191273063	11390902	191154276	jmilosevic-sAML			end-of-chr;minor clone	
+112c	P108A#D	112c	PMN	UPD	22	q	27850000	49691432	29520000	51244566	jmilosevic-sAML			end-of-chr;minor clone	
+488e	P109A#D	488e	PMN	UPD	8	q	47900000	146274826	47780835	146364022	jmilosevic-sAML			end-of-chr;full	
+635b	P111A#D	635b	PMN	UPD	11	q	55500000	134452384	55743424	135006516	jmilosevic-sAML			end-of-chr;full	
+MPC07_207	P112A#D	MPC07_207	PMN	deletion	5	q	86500000	180857866	86464244	180915260	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	end-of-chr;full	5:86400000-180857866
+MPC07_207	P112A#D	MPC07_207	PMN	gain	3	q	160000000	199501827	158517306	198022430	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	end-of-chr;slightly bigger clone	3:159960000-199501827
+MPC07_407	P113A#D	MPC07_407	PMN	deletion	7	q	61600000	158821424	61967158	159138663	jmilosevic-sAML			end-of-chr;full	
+MPC07_407	P113A#D	MPC07_407	PMN	gain	1	q	143000000	247249719	144288643	249250621	jmilosevic-sAML			end-of-chr;full	
+MPC07_407	P113A#D	MPC07_407	PMN	gain	9	q	70100000	140273252	70910180	141213431	jmilosevic-sAML			end-of-chr;full	
+MPC07_407	P113A#D	MPC07_407	PMN	gain	21	p+q	1	46944323	1	48129895	jmilosevic-sAML			end-of-chr;minor clone -trisomy	
+MPC07_407	P113A#D	MPC07_407	PMN	UPD	9	q	70100000	140273252	70910180	141213431	jmilosevic-sAML			end-of-chr;NA	
+MPC08_84	P114A#D	MPC08_84	PMN	deletion	5	q	49600000	180857866	49564243	180915260	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_397	end-of-chr;NA	5:49500000-180857866
+MPC09_150	P115A#D	MPC09_150	PMN	deletion	7	q	81870000	158821424	82032064	159138663	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_406	end-of-chr;full	7:81900000-158821424
+MPC09_150	P115A#D	MPC09_150	PMN	gain	1	q	143500000	247249719	144810725	249250621	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_406	end-of-chr;full	1:142690000-247249719
+MPC09_150	P115A#D	MPC09_150	PMN	gain	3	q	162200000	199501827	160717306	198022430	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_406	end-of-chr;full	3:162150000-199501827
+H_0010B	P001B#B	H_0010A	GD	deletion	13	q	30900000	61220000	32002000	62321999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8		
+H_0010B	P001B#E	H_0010A	GD	deletion	13	q	30900000	61220000	32002000	62321999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_8		
+H_0014A	P002A#A	H_0014A	GD	UPD	9	p	1	27150000	1	27160000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_12		
+H_0014A	P002A#A	H_0014A	GD	UPD	9	p	1	28300000	1	28310000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_12		
+H_0016B	P003B#A	H_0016A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_14		
+H_0019A	P004A#A	H_0019A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_16		
+H_0020C	P005C#A	H_0020A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_17		
+H_0035C	P006C#A	H_0035A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_28		
+H_0040A	P007A#A	H_0040B	GD	UPD	9	p	1	14750000	1	14760000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_31		
+H_0040A	P007A#A	H_0040B	GD	deletion	11	p	16000000	16400000	16043424	16443424	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_31		
+H_0047C	P008C#A	H_0047A	MD								6.0-db-final1219				
+H_0059A	P009A#B	H_0059A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_45		
+H_0059A	P009A#C	H_0059A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_45		
+H_0060A	P010A#A	H_0060A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_46		
+H_0062D	P011D#A	H_0062C	GD	UPD	9	p	1	35100000	1	35110000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_48		
+H_0064B	P012B#E	H_0064B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_50		
+H_0067B	P013B#A	H_0067A	GD	deletion	12	q	48045000	49555000	49758733	51268733	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_53		
+H_0067B	P013B#A	H_0067A	GD	deletion	12	q	92070000	94510000	93545869	95985869	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_53		
+H_0067B	P013B#A	H_0067A	GD	deletion	12	q	108800000	110650000	110315617	112165617	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_53		
+H_0067B	P013B#A	H_0067A	GD	deletion	12	q	119680000	121900000	121195617	123334047	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_53		
+H_0075A	P014A#A	H_0075A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_60		
+H_0098A	P015A#A	H_0098A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_78		
+H_0099A	P016A#A	H_0099A	MD	UPD	9	p	1	30835000	1	30845000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_79		
+H_0101B	P017B#A														
+H_0102A	P018A#A	H_0102C	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_81		
+H_0103B	P019B#A	H_0103A	MD	deletion	5	q	90000000	139000000	89964244	139019816	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_82		
+H_0104A	P020A#A	H_0104A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_83		
+H_0112A	P021A#A	H_0112A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_91		
+H_0333A	P021A#C	H_0333A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_91		
+H_0118A	P022A#A	H_0118A	GD	gain	1	p	30800000	31140000	31027413	31367413	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_96		
+H_0125A	P023A#A	H_0125B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_101		
+H_0135A	P024A#A	H_0135A	GD	UPD	9	p	1	31250000	1	31260000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_110		
+H_0156A	P025A#A	H_0156A	GD	UPD	9	p	1	6057000	1	6067000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_126		
+H_0156A	P025A#E	H_0156A	GD	UPD	9	p	1	6057000	1	6067000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_126		
+H_0157A	P026A#B	H_0157A	GD	UPD	9	p	1	35920000	1	35930000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_127		
+H_0158A	P027A#A	H_0158A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_128		
+H_0161B	P028B#A	H_0161A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_130		
+H_0162A	P029A#A	H_0162B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_131		
+H_0164C	P030C#A	H_0164A	GD	gain	16	p	5800000	6400000	5859999	6459999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_132		
+H_0166A	P031A#A	H_0166A	MD	deletion	7	p	1	11600000	1	11633475	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_134		
+H_0171A	P032A#C	H_0171A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_136		
+H_0172C	P033C#A	H_0172A	MD								6.0-db-final1219				
+H_0183A	P034A#B	H_0183A	MD	deletion	13	q	31500000	76850000	32602000	77951999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_145		
+H_0183A	P034A#C	H_0183A	MD	deletion	13	q	31500000	76850000	32602000	77951999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_145		
+H_0185C	P035C#A	H_0185A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_147		
+H_0186A	P036A#A	H_0186A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_148		
+H_0187B	P037B#A	H_0187A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_149		
+H_0189A	P038A#A	H_0189A	MD	UPD	9	p	1	30815000	1	30825000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_151		
+H_0191A	P039A#C	H_0191B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_153		
+H_0191C	P039C#B	H_0191B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_153		
+H_0201B	P040B#A	H_0201A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_160		
+H_0202A	P041A#C	H_0202A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_161		
+H_0202C	P041C#B	H_0202A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_161		
+H_0204A	P042A#B	H_0204A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_163		
+H_0210C	P043C#A	H_0210A	MD	UPD	9	p	1	36725000	1	36735000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_168		
+H_0218A	P044A#B	H_0218A	WGD	gain	9	p	1	38762000	1	38772000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0218A	P044A#B	H_0218A	WGD	deletion	18	p	1	15390000	1	15400000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0218A	P044A#B	H_0218A	WGD	deletion	13	q	28800000	54400000	29902000	55501999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0218A	P044A#C	H_0218A	WGD	gain	9	p	1	38762000	1	38772000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0218A	P044A#C	H_0218A	WGD	deletion	18	p	1	15390000	1	15400000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0218A	P044A#C	H_0218A	WGD	deletion	13	q	28800000	54400000	29902000	55501999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_175		
+H_0221A	P045A#A	H_0221A	GD	deletion	4	q	105950000	106480000	105730551	106260551	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_178		
+H_0221A	P045A#C	H_0221A	GD	deletion	4	q	105950000	106480000	105730551	106260551	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_178		
+H_0238C	P046C#B	H_0238B	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_193		
+H_0171A	P047A#A	H_0171A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_136		
+H_0244B	P047B#A	H_0244A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_197		
+H_0257A	P048A#C	H_0257B	GD	UPD	19	p	1	15535000	1	15674000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_200		
+H_0257A	P048A#C	H_0257B	GD	gain	9	p	19200000	19570000	19210000	19580000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_200		
+H_0284A	P049A#A	H_0284B	GD	deletion	22	q	19350000	19795000	21020000	21465000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_203		
+H_0287B	P050B#A	H_0287B	GD	UPD	9	p	1	24125000	1	24135000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_204		
+H_0296D	P051D#B	H_0296A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_205		
+H_0315A	P052A#A	H_0315A	GD	UPD	9	p	1	17527000	1	17537000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_218		
+H_0320A	P053A#B	H_0320A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_222		
+H_0329A	P054A#A	H_0329A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_230		
+H_0333C	P055C#B	H_0333A	GD								6.0-db-final1219				
+H_0334A	P056A#B	H_0334A	GD								6.0-db-final1219				
+H_0344A	P057A#A	H_0344A	MD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_238		
+H_0349A	P058A#B	H_0349A	MD	UPD	9	p	1	36720000	1	36730000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_243		
+H_0353B	P059B#A	H_0353A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_245		
+H_0362A	P060A#A	H_0362A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_251		
+H_0362A	P060A#C	H_0362A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_251		
+H_0362B	P060B#B	H_0362A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_251		
+H_0374A	P062A#A	H_0374A	GD	gain	4	q	166050000	166450000	165830550	166230550	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_259		
+H_0374A	P062A#A	H_0374A	GD	gain	4	q	169600000	169940000	169363425	169703425	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_259		
+H_0384A	P063A#A	H_0384A	GD	UPD	9	p	1	34350000	1	34360000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0384A	P063A#A	H_0384A	GD	deletion	20	q	35900000	54940000	36466586	55506593	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0384A	P063A#A	H_0384A	GD	gain	15	q	43550000	43850000	45762708	46062708	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0384A	P063A#E	H_0384A	GD	UPD	9	p	1	34350000	1	34360000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0384A	P063A#E	H_0384A	GD	deletion	20	q	35900000	54940000	36466586	55506593	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0384A	P063A#E	H_0384A	GD	gain	15	q	43550000	43850000	45762708	46062708	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_264		
+H_0385A	P064A#B	H_0385A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_265		
+H_0386C	P065C#B	H_0386A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_266		
+H_0390A	P066A#A	H_0390A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_268		
+H_0436A	P067A#B	H_0436A	GD	deletion	6	q	135780000	137450000	135738307	137408307	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_274		
+H_0443A	P068A#A	H_0443A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_280		
+H_0444A	P069A#A	H_0444B	GD	deletion	4	q	100000000	107650000	99780977	107430551	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2010	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	4	q	136950000	145580000	136730550	145360550	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2011	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	7	p	22420000	35600000	22453475	35633475	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2012	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	7	p	38200000	45100000	38233475	45133475	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2013	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	7	p	46950000	53300000	46983475	53332506	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2014	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	13	q	29350000	36600000	30452000	37702000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2015	sample_281		
+H_0444A	P069A#A	H_0444B	GD	UPD	9	p	1	33000000	1	33010000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2016	sample_281		
+H_0444A	P069A#A	H_0444B	GD	deletion	13	q	44320000	54490000	45422000	55591999	tklampfl2011-suppl	Klampfl_et_al_2011_Blood; Jaeger_et_al_2016	sample_281		
+H_0457A	P070A#C	H_0457A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_290		
+H_0458A	P071A#A	H_0458A	GD	UPD	9	p	1	28175000	1	28185000	6.0-db-final1219				
+H_0462A	P072A#A	H_0462A	GD	UPD	9	p	1	34031000	1	34041000	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_294		
+H_0467A	P073A#A	H_0467A	GD	deletion	11	p	26880000	27280000	26923424	27323424	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_298		
+H_0467A	P073A#A	H_0467A	GD	deletion	10	q	118100000	118300000	118110010	118310010	tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_298		
+H_0472B	P074B#A	H_0472A	WD								mannhalter-vienna	No			
+H_0491A	P075A#C	H_0491A	GD								tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_306		
+H_0504B	P076B#A	H_0504A	WD								mannhalter-vienna				
+H_0510C	P077C#A	H_0510A	WD								mannhalter-vienna				
+H_0538A	P078A#A	H_0538A	GD								vienna-new6.0				
+H_0580C	P079C#A	H_0580A	WD	gain	9	p	1	38762000	1	38772000	mannhalter-vienna				
+H_0580C	P079C#A	H_0580A	WD	deletion	3	p	63750000	73020000	63774960	72937310	mannhalter-vienna				
+H_0580C	P079C#A	H_0580A	WD	deletion	10	q	104100000	105180000	104110010	105190010	mannhalter-vienna				
+H_0580C	P079C#A	H_0580A	WD	gain	1	q	142700000	247249719	143988643	249250621	mannhalter-vienna				
+H_0580C	P079C#A	H_0580A	WD	deletion	3	p	69120000	73020000	69037310	72937310	mannhalter-vienna				
+H_0585B	P080B#A														
+H_0597B	P081B#A	H_0597A	WD								mannhalter-vienna				
+H_0672B	P082B#A	H_0672A	WD	deletion	13	q	47100000	51400000	48201999	52501999	mannhalter-vienna				
+H_0676B	P083B#A	H_0676A	WD								mannhalter-vienna				
+H_0687A	P084A#A	H_0687A	GD	UPD	9	p	1	28250000	1	28260000	vienna-new6.0				
+H_0698A	P085A#A	H_0698A	GD								vienna-new6.0				
+H_0705A	P086A#A	H_0705A	GD	UPD	9	p	1	36640000	1	36650000	vienna-new6.0				
+H_0705A	P086A#A	H_0705A	GD	deletion	13	q	86100000	86350000	87301999	87551999	vienna-new6.0				
+H_0722A	P087A#C	H_0722A	GD	deletion	5	q	108400000	154300000	108372101	154319807	vienna-new6.0				
+H_0728A	P088A#A	H_0728A	GD	UPD	9	p	1	36540000	1	36550000	vienna-new6.0				
+H_0731B	P089B#A	H_0731B	GD	UPD	9	p	1	23300000	1	23310000	vienna-new6.0				
+H_0736A	P090A#A	H_0736A	GD								vienna-new6.0				
+H_0738A	P091A#A	H_0738A	GD	UPD	9	p	1	23070000	1	23080000	vienna-new6.0				
+H_0741A	P092A#C	H_0741A	GD								vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	UPD	9	p	1	35700000	1	35710000	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	8	p	10100000	14700000	10062590	14655629	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	13	q	19000000	25650000	20102000	26752000	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	8	p	26900000	29500000	26844083	29444081	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	8	p	29650000	30000000	31980458	32280458	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	13	q	31980000	56000000	33082000	57101999	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	8	p	32100000	32400000	33580458	37880843	vienna-new6.0				
+H_0745A	P093A#A	H_0745A	GD	deletion	8	p	33700000	38000000	47780835	146304022	vienna-new6.0				
+H_0747B	P094B#A	H_0747A	GD	deletion	6	p	1	25900000	1	25792021	vienna-new6.0				
+H_0747B	P094B#A	H_0747A	GD	UPD	9	p	1	28200000	1	28210000	vienna-new6.0				
+H_0747B	P094B#A	H_0747A	GD	deletion	3	p	10400000	11300000	10425000	11325000	vienna-new6.0				
+H_0747B	P094B#A	H_0747A	GD	deletion	17	q	29550000	30550000	32525887	33525887	vienna-new6.0				
+H_0749A	P095A#A	H_0749A	GD	UPD	9	p	1	38400000	1	38410000	vienna-new6.0				
+H_0751A	P096A#A	H_0751A	GD								vienna-new6.0				
+H_0752A	P097A#A	H_0752A	GD								vienna-new6.0				
+H_0766A	P098A#A	H_0766A	GD								vienna-new6.0			former H_0722A	
+H_0766A	P098A#C	H_0766A	GD	gain	21	q	46240000	46470000	47415572	47645572	vienna-new6.0				
+H_0767A	P099A#A	H_0767A	GD								vienna-new6.0				
+H_0767A	P099A#C	H_0767A	GD								vienna-new6.0				
+H_0772A	P100A#A	H_0772A	GD	deletion	11	q	118300000	119400000	118794790	119894790	vienna-new6.0				
+H_0772A	P100A#A	H_0772A	GD	deletion	3	q	128180000	129100000	126697310	127617310	vienna-new6.0				
+H_0772A	P100A#C	H_0772A	GD	deletion	11	q	118300000	119400000	118794790	119894790	vienna-new6.0				
+H_0772A	P100A#C	H_0772A	GD	deletion	3	q	128180000	129100000	126697310	127617310	vienna-new6.0				
+H_0778A	P101A#A	H_0778A	GD								vienna-new6.0				
+H_0781A	P102A#A	H_0781A	GD	UPD	9	p	1	24430000	1	24440000	vienna-new6.0				
+H_0798A	P104A#A	H_0798A	GD								vienna-new6.0				
+H_0800A	P105A#A	H_0800A	GD								vienna-new6.0			ROH?	
+H_0805A	P106A#A	H_0805A	GD								vienna-new6.0				
+H_0808A	P107A#A	H_0808A	GD	UPD	9	p	1	27100000	1	27110000	vienna-new6.0				
+112c	P108A#D	112c	PMN	gain	20	p+q	1	32150000	1	32686339	jmilosevic-sAML			full	
+112c	P108A#D	112c	PMN	deletion	6	q	67200000	86800000	67143279	86743281	jmilosevic-sAML			full	
+112c	P108A#D	112c	PMN	deletion	11	q	63200000	65900000	63443424	66143424	jmilosevic-sAML			minor clone	
+112c	P108A#D	112c	PMN	gain	19	p+q	20000000	33100000	20139000	28408160	jmilosevic-sAML			minor clone	
+488e	P109A#D	488e	PMN	gain	9	p	1	39300000	1	39310000	jmilosevic-sAML			full	
+488e	P109A#D	488e	PMN	gain	1	q	142700000	204500000	143988643	206332221	jmilosevic-sAML			full	
+501b	P110A#D	501b	PMN	UPD	17	p	1	19100000	1	19159407	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_402	bigger clone than 9pUPD	17:1-19200000
+501b	P110A#D	501b	PMN	UPD	9	p	1	33500000	1	33510000	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_402	minor clone	9:1-36800000
+MPC07_207	P112A#D	MPC07_207	PMN	deletion	6	p	1	29030000	1	28922021	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	full	6:1-29000000
+MPC07_207	P112A#D	MPC07_207	PMN	deletion	12	p	11880000	12870000	11988733	12978733	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	NA	12:11800000-12900000
+MPC07_207	P112A#D	MPC07_207	PMN	deletion	10	q	69800000	70450000	70129994	70779994	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	NA	10:69700000-70550000
+MPC07_207	P112A#D	MPC07_207	PMN	gain	6	p	29030000	34400000	28922021	34292022	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	NA	6:29000000-45500000
+MPC07_207	P112A#D	MPC07_207	PMN	gain	2	p	1	5400000	1	5482549	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	slightly bigger clone	2:1-5600000
+MPC07_207	P112A#D	MPC07_207	PMN	UPD	9	p	1	28200000	1	28210000	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	full	9:1-28190000
+MPC07_207	P112A#D	MPC07_207	PMN	gain	6	p	34400000	45400000	34292022	45292022	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_394	NA	
+MPC07_407	P113A#D	MPC07_407	PMN	gain	9	p	1	43000000	1	43010004	jmilosevic-sAML			full – 2 clones	
+MPC08_84	P114A#D	MPC08_84	PMN	deletion	6	p	1	26750000	1	26642021	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_397	NA	6:1-26800000
+MPC08_84	P114A#D	MPC08_84	PMN	deletion	17	p	1	10600000	1	10659275	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_397	NA	17:1-10800000
+MPC08_84	P114A#D	MPC08_84	PMN	UPD	9	p	1	12000000	1	12010000	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_397	medium[?]	9:1-12107000
+MPC09_150	P115A#D	MPC09_150	PMN	deletion	19	p	1	2000000	1	2049000	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_406	minor clone	19:1-2300000
+MPC09_150	P115A#D	MPC09_150	PMN	deletion	10	q	81630000	82000000	82000000	82010020	tklampfl2011-suppl				10:81630000-82000000
+MPC09_150	P115A#D	MPC09_150	PMN	UPD	9	p	1	16420000	1	16430000	jmilosevic-sAML;tklampfl2011-suppl	Klampfl_et_al_2011_Blood	sample_406	full	9:1-16918000
+MPC10_372	P116A#D	MPC10_372	PMN	UPD	1	p	1	104150000	1	104348477	jmilosevic-sAML			full	
+CeMM_D01	C001A#A														
+CEMM_05	C001A#C														
+CEMM_12	C002A#B														
+CEMM_13	C003A#B														
+CEMM_13	C003A#C														
+CEMM_D19	C004A#A														
+CEMM_16	C004A#C														
+CEMM_D38	C005A#A														
+CEMM_38	C005A#B														
+CEMM_20	C005A#C														
+CEMM_D16	C006A#A														
+CEMM_21	C006A#B														
+CEMM_28	C007A#B														
+CEMM_D09	C008A#A														
+CEMM_9	C008A#B														
+CEMM_36	C008A#C														
+CEMM_D51	C009A#A														
+CEMM_51	C009A#B														
+CeMM_D05	C010A#A														
+CEMM_D08	C011A#A														
+CEMM_D31	C012A#A														
+Control_2	C013A#A														
+Control_3	C014A#A														
+Control_5	C015A#A														
+CEMM_41	C016A#C														
