@@ -19,6 +19,7 @@ library(BioCircos)
 color.palette = c()
 color.palette$main = "#40B9D4"
 color.palette$second = "#FFFFFF"
+color.palette$contrast = "#f8b100"
 color.palette$bg = "#FFFFFF"
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
@@ -166,8 +167,6 @@ dataAberrations$family = as.factor(with(dataAberrations, paste0(chr, chr.arm, ty
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
-
-dataFusions
 
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
@@ -717,7 +716,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 							multiple = FALSE
 				)
 			),
-			mainPanel(BioCircosOutput("fusSumCircos"), textOutput("fusSumPrint")),
+			mainPanel(BioCircosOutput("fusSumCircos", height = 600), textOutput("fusSumPrint")),
 			id = "fusSum"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
@@ -1608,13 +1607,40 @@ shinyServer <- function(input, output) {
 	# Generate Circos plot for the selected patient
 	output$fusSumCircos <- renderBioCircos({
 		patientInfo = fusGetAllInfoPatient()
-		tracks = BioCircosSNPTrack("testTrack1", as.character(rep(1:10,10)), round(runif(100, 1, 135534747)), 
-			runif(100, 0, 10), colors = "Spectral", minRadius = 0.3, maxRadius = 0.45)
+
+		tracks = BioCircosTextTrack("pname", patientInfo$clinical$unique.sample.id, x = -0.15) # Display ID
+		
+		# Display SNPs with background, if any
+		if("variant" %in% names(patientInfo)){
+			varChr = patientInfo$variant$CHROM # Select all variants, even filtered
+			varPos = patientInfo$variant$POS
+			varFreq = patientInfo$variant$VARIANT_FREQUENCY
+			varGene = patientInfo$variant$GENESYMBOL
+
+			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, 
+				labels = varGene, colors = color.palette$contrast, maxRadius = 0.75, minRadius = 0.5)
+			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)			
+		}
+
+		# Display aberrations if any
+		if("aberration" %in% names(patientInfo)){
+			if(patientInfo$aberration$chr[1] != ""){
+				aberChr = patientInfo$aberration$chr
+				aberStart = patientInfo$aberration$start.bp.hg19
+				aberEnd = patientInfo$aberration$end.bp.hg19
+
+				tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95, minRadius = 0.80)
+				tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, fillColors = "#FFEEEE")			
+			}
+		}
+
 		BioCircos(tracks, genomeFillColor = "Spectral", yChr = T, chrPad = 0, displayGenomeBorder = F, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
-			genomeLabelTextSize = 18, genomeLabelDy = 0)
+			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
+			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
 	})
 
+	# Return all info on the selected patient
 	fusGetAllInfoPatient <- reactive({
 		patientData = list()
 		patientData$clinical = dataCohort[dataCohort$unique.sample.id == input$fusSumSample,]
