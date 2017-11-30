@@ -712,11 +712,11 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 				selectInput(inputId = "fusSumSample",
 							label = "Patient:",
 							choices = sort(dataCohort$unique.sample.id),
-							selected = 1,
+							selected = "P034A#B",
 							multiple = FALSE
 				)
 			),
-			mainPanel(BioCircosOutput("fusSumCircos", height = 600), textOutput("fusSumPrint")),
+			mainPanel(BioCircosOutput("fusSumCircos", height = 600)),
 			id = "fusSum"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
@@ -1608,7 +1608,7 @@ shinyServer <- function(input, output) {
 	output$fusSumCircos <- renderBioCircos({
 		patientInfo = fusGetAllInfoPatient()
 
-		tracks = BioCircosTextTrack("pname", patientInfo$clinical$unique.sample.id, x = -0.15) # Display ID
+		tracks = BioCircosTextTrack("pname", patientInfo$clinical$unique.sample.id, x = -0.18, y = -0.18) # Display ID
 		
 		# Display SNPs with background, if any
 		if("variant" %in% names(patientInfo)){
@@ -1617,7 +1617,7 @@ shinyServer <- function(input, output) {
 			varFreq = patientInfo$variant$VARIANT_FREQUENCY
 			varGene = patientInfo$variant$GENESYMBOL
 
-			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, 
+			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5,
 				labels = varGene, colors = color.palette$contrast, maxRadius = 0.75, minRadius = 0.5)
 			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)			
 		}
@@ -1632,6 +1632,20 @@ shinyServer <- function(input, output) {
 				tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95, minRadius = 0.80)
 				tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, fillColors = "#FFEEEE")			
 			}
+		}
+
+		# Display fusions if any
+		if("fusion" %in% names(patientInfo)){
+			g1pos = patientInfo$fusion$GENOMICBREAKPOINT_A
+			g2pos = patientInfo$fusion$GENOMICBREAKPOINT_B
+			g1chr = patientInfo$fusion$CHR_A
+			g2chr = patientInfo$fusion$CHR_B
+			g1names = patientInfo$fusion$GENE_A
+			g2names = patientInfo$fusion$GENE_B
+
+			tracks = tracks + BioCircosLinkTrack("pfusions", g1chr, g1pos, g1pos, g2chr, g2pos, g2pos,
+			maxRadius = 0.45, width = "0.2em", gene1Names = g1names, gene2Names = g2names)
+			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
 		}
 
 		BioCircos(tracks, genomeFillColor = "Spectral", yChr = T, chrPad = 0, displayGenomeBorder = F, 
