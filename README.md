@@ -15,7 +15,7 @@ Filter variants to select only the somatic mutations with sufficient evidence. R
 
 ### Aberrations and gene fusions exploration
 
-Represent co-occurences of variants and genomic aberrations.
+Represent co-occurences of variants and genomic aberrations, occurences of aberrations per disease, and display summary of genetic events per patient.
 
 
 ## Changelog
@@ -48,7 +48,8 @@ Implement full CSS layout
 
 ### Aberrations and fusions exploration
 
-* Add option to remove control samples
+* Add fusions on Circos plots
+* Add option to filter variants on Circos plots
 
 ### Patient-specific data and differential splicing antigen summary
 
