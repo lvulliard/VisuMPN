@@ -1626,14 +1626,14 @@ shinyServer <- function(input, output) {
 			varGene = patientInfo$variant$GENESYMBOL
 
 			filteredVariants = with(filteredDataVariants(), paste(CHROM, POS))
-			varCol = sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
-				color.palette$contrast, color.palette$main))
-			varLab = sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
-				"Kept", "Filtered"))
+			varCol = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				color.palette$contrast, color.palette$main)))
+			varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				"Kept", "Filtered")))
 
 			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5,
 				labels = paste(varGene, varLab, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
-			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)			
+			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)	
 		}
 
 		# Display aberrations if any
