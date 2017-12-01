@@ -1621,8 +1621,14 @@ shinyServer <- function(input, output) {
 			varFreq = patientInfo$variant$VARIANT_FREQUENCY
 			varGene = patientInfo$variant$GENESYMBOL
 
+			filteredVariants = with(filteredDataVariants(), paste(CHROM, POS))
+			varCol = sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				color.palette$contrast, color.palette$main))
+			varLab = sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				"Kept", "Filtered"))
+
 			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5,
-				labels = varGene, colors = color.palette$contrast, maxRadius = 0.75, minRadius = 0.5)
+				labels = paste(varGene, varLab, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
 			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)			
 		}
 
@@ -1675,7 +1681,7 @@ shinyServer <- function(input, output) {
 			patientData$variant = dataVariants[dataVariants$UNIQ_SAMPLE_ID == patientData$clinical$sample.id.variant.file.format,]
 		}
 		
-		if(input$fusSumSample %in% dataAberrations$unique.sample.id){
+		if(input$fusSumSample %in% subsetAberrations$unique.sample.id){
 			patientData$aberration = subsetAberrations[subsetAberrations$unique.sample.id == input$fusSumSample,]
 		}
 
