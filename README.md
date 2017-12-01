@@ -32,6 +32,10 @@ Implement basic variants description plots
 
 Implement full CSS layout
 
+### v0.4
+
+Implement aberration description plots, and patient-wise Circos plots.
+
 
 ## To-do list
 
@@ -48,8 +52,7 @@ Implement full CSS layout
 
 ### Aberrations and fusions exploration
 
-* Add fusions on Circos plots
-* Add option to filter variants on Circos plots
+* Correct display for single SNP on Circos plot
 
 ### Patient-specific data and differential splicing antigen summary
 

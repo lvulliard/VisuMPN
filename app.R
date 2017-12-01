@@ -172,6 +172,10 @@ color.palette$aberrations = brewer.pal(length(levels(subsetAberrations$type.of.a
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
 
+dataFusions$TYPE_REARRANGEMENT = as.factor(dataFusions$TYPE_REARRANGMENT)
+color.palette$fusions = brewer.pal(length(levels(dataFusions$TYPE_REARRANGEMENT)), color.palette$function_multi_circos)
+
+
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
 		href = "http://cemm.at/")), windowTitle = "MPN vizualization", position = "fixed-top",
@@ -1656,9 +1660,22 @@ shinyServer <- function(input, output) {
 			g2chr = patientInfo$fusion$CHR_B
 			g1names = patientInfo$fusion$GENE_A
 			g2names = patientInfo$fusion$GENE_B
+			ftype = patientInfo$fusion$TYPE_REARRANGEMENT
+			flabels = paste(g1names, g2names, sep = " - ")
+			flabels = paste(flabels, ftype, sep = "<br/>")
 
-			tracks = tracks + BioCircosLinkTrack("pfusions", g1chr, g1pos, g1pos, g2chr, g2pos, g2pos,
-			maxRadius = 0.45, width = "0.2em", gene1Names = g1names, gene2Names = g2names)
+			for(i in 1:length(levels(ftype))){ # Display one track per re-arrangement
+				currentLevel = levels(ftype)[i]
+				currentRows = which(ftype == currentLevel)
+
+				if(length(currentRows) > 0){ # If some fusions of this type needs to be displayed
+					tracks = tracks + BioCircosLinkTrack(paste0("pfusions", currentLevel), g1chr[currentRows], g1pos[currentRows],
+					g1pos[currentRows], g2chr[currentRows], g2pos[currentRows], g2pos[currentRows], labels = flabels[currentRows],
+					maxRadius = 0.45, width = "0.2em", gene1Names = g1names[currentRows], gene2Names = g2names[currentRows],
+					displayLabel = F, color = color.palette$fusions[i])
+				}
+			}
+				
 			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
 		}
 
