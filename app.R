@@ -22,6 +22,7 @@ color.palette$second = "#FFFFFF"
 color.palette$contrast = "#f8b100"
 color.palette$bg = "#FFFFFF"
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
+color.palette$function_multi_circos = "RdYlGn"
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
 color.palette$function_bimod = colorRampPalette(c("#00bfff","#c1e8f1",colorRampPalette(c("#ffffff", "#ffd466", "#ffc533", "#f8b100"))(21) ))
 
@@ -163,6 +164,9 @@ dataAberrations = merge(x = dataAberrations, y = dataCohort[,names(dataCohort) %
 # Families of aberrations
 dataAberrations$family = as.factor(with(dataAberrations, paste0(chr, chr.arm, type.of.aberration)))
 
+subsetAberrations = dataAberrations[dataAberrations$type.of.aberration != "",]
+subsetAberrations$type.of.aberration = as.factor(subsetAberrations$type.of.aberration)
+color.palette$aberrations = brewer.pal(length(levels(subsetAberrations$type.of.aberration)), color.palette$function_multi_circos)
 
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
@@ -707,7 +711,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 				id = "aberDisOcTabs"
 			)	
 		),
-		tabPanel(title = "Fusion - Patient summary",
+		tabPanel(title = "Sample summary and fusions",
 			sidebarPanel(
 				selectInput(inputId = "fusSumSample",
 							label = "Patient:",
@@ -1628,9 +1632,13 @@ shinyServer <- function(input, output) {
 				aberChr = patientInfo$aberration$chr
 				aberStart = patientInfo$aberration$start.bp.hg19
 				aberEnd = patientInfo$aberration$end.bp.hg19
+				aberType = patientInfo$aberration$type.of.aberration
 
-				tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95, minRadius = 0.80)
-				tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, fillColors = "#FFEEEE")			
+				tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, 
+					colors = color.palette$aberrations[as.numeric(aberType)], labels = as.character(aberType),
+					maxRadius = 0.95, minRadius = 0.80)
+				tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, 
+					fillColors = "#FFEEEE")			
 			}
 		}
 
@@ -1648,7 +1656,7 @@ shinyServer <- function(input, output) {
 			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
 		}
 
-		BioCircos(tracks, genomeFillColor = "Spectral", yChr = T, chrPad = 0, displayGenomeBorder = F, 
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0, displayGenomeBorder = F, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
 			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
 			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
@@ -1668,7 +1676,7 @@ shinyServer <- function(input, output) {
 		}
 		
 		if(input$fusSumSample %in% dataAberrations$unique.sample.id){
-			patientData$aberration = dataAberrations[dataAberrations$unique.sample.id == input$fusSumSample,]
+			patientData$aberration = subsetAberrations[subsetAberrations$unique.sample.id == input$fusSumSample,]
 		}
 
 		return(patientData)
