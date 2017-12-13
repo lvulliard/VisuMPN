@@ -21,6 +21,7 @@ color.palette$main = "#40B9D4"
 color.palette$second = "#FFFFFF"
 color.palette$contrast = "#f8b100"
 color.palette$bg = "#FFFFFF"
+color.palette$function_mono = colorRampPalette(c(color.palette$main, "#000000"))
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
 color.palette$function_multi_circos = "RdYlGn"
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
@@ -60,7 +61,7 @@ dataCohort$age.years = as.numeric(round(dataCohort$age.days / 365.25))
 dataCohortTypes = data.frame(dataColNames = names(dataCohort), description = c("Unique Sample ID", "Sample ID", "Follow-up", "Batch",
 	"Diagnosis", "Genotype", "JAK2 mutant", "CALR mutant", "MPL mutant", "JAK2 burden", "CALR burden", "Date of birth", "Sex",
 	"RIN", "Bleeding date", "Extraction date", "Extraction method", "Date of diagnosis", "Date of diagnosis of blast phase",
-	"Date of death", "Hemoglobine level at diagnosis", "White blood cell level at diagnosis", "Platelet level at diagnosis",
+	"Date of death", "Hemoglobin level at diagnosis", "White blood cell level at diagnosis", "Platelet level at diagnosis",
 	"Thrombotic events after diagnosis", "Date of first thrombotic event after diagnosis", "Library type", "Read length",
 	"Percentage of mapping reads", "Mapped reads", "Set number", "PLEX number", "Index LSR1", "Flowcell number", "Patient ID",
 	"Age when diagnosed (in days)", "Age when diagnosed (in years)"), line = seq(length(dataCohort)), stringsAsFactors = FALSE)
@@ -248,7 +249,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 						selectInput(inputId = "plotVariableX",
 							label = "Data on x-axis:",
 							choices = dataCohortTypes[quantitativeVar,2],
-							selected = "Hemoglobine level at diagnosis",
+							selected = "Hemoglobin level at diagnosis",
 							multiple = FALSE
 						),
 						selectInput(inputId = "plotVariableY",
@@ -1399,20 +1400,13 @@ shinyServer <- function(input, output) {
 	# Variant per sample matrix
 	output$varBinMat <- renderPlotly({
 		dataset = filteredDataVariants()
+		dataset = dataset[order(dataset$diagnosis),]
 		# Sort samples by diagnosis then by mutational load
 		mutLoads = table(dataset$UNIQ_SAMPLE_ID)
 		dataset$mutLoad = sapply(dataset$UNIQ_SAMPLE_ID, function(x) -mutLoads[names(mutLoads) == x][[1]])
 		dataset$UNIQ_SAMPLE_ID = factor(dataset$UNIQ_SAMPLE_ID, levels = unique((dataset$UNIQ_SAMPLE_ID)[order(dataset$diagnosis, dataset$mutLoad)]))
 		# Sort gene symbols by frequency
 		dataset$GENESYMBOL = factor(dataset$GENESYMBOL, levels = names(sort(table(dataset$GENESYMBOL))))
-		dataset = dataset[order(dataset$diagnosis),]
-
-		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = CADD_phred, text = diagnosis)) + 
-			geom_raster() +
-			labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
-			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
-		gpy1 = ggplotly(gp1) 
-		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 		
 		gp2 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = 1, fill = diagnosis)) + geom_raster() +
 			labs(x = "Sample ID", y = "Diagnosis", caption = "Hover to get values") +
@@ -1420,7 +1414,18 @@ shinyServer <- function(input, output) {
 			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
 		gpy2 = ggplotly(gp2)
 
+		varDF = with(dataset, as.data.frame.matrix(table(UNIQ_SAMPLE_ID, GENESYMBOL)))
+		varDF[varDF == 0] <- NA
+		varDF = t(varDF)
+		# Elements cannot be accessed by names. Columns 1, 2, 47 and 68 corresponds to
+		# UNIQ_SAMPLE_ID, GENESYMBOL, CADD_phred and diagnosis
+		apply(dataset, 1, function(x) varDF[rownames(varDF) == x[2], colnames(varDF) == x[1]] <<- as.numeric(x[47]))
+		gpy1 = heatmaply(varDF, na.rm = T, colors = color.palette$function_mono , show_grid = T,
+			dendrogram = "none", labRow = NA, labCol = NA,  key.title = "CADD PHRED-like C score",
+			grid_gap=2, label_names = c("Mutated_gene", "Sample", "CADD_score"), colorbar_len = 1)		
+
 		subplot(gpy1, gpy2, nrows = 2, shareX = T, shareY = T, heights = c(0.9,0.1))
+
 	})
 
 

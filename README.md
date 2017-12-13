@@ -17,9 +17,7 @@ Filter variants to select only the somatic mutations with sufficient evidence. R
 
 Represent co-occurences of variants and genomic aberrations, occurences of aberrations per disease, and display summary of genetic events per patient.
 
-
-## Changelog
-
+ 
 ### v0.1
 
 Implement basic cohort description plots
