@@ -1636,7 +1636,7 @@ shinyServer <- function(input, output) {
 			varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
 				"Kept", "Filtered")))
 
-			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5,
+			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5, range = c(1,0),
 				labels = paste(varGene, varLab, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
 			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)	
 		}
