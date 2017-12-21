@@ -1733,8 +1733,8 @@ shinyServer <- function(input, output) {
 					varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
 						"Kept", "Filtered")))
 
-					tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5, range = c(1,0),
-						labels = paste(varGene, varLab, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
+					tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 2.5, range = c(1,0),
+						labels = paste(varGene, varLab, patient, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
 				}
 
 				# Display aberrations if any
@@ -1745,9 +1745,9 @@ shinyServer <- function(input, output) {
 						aberEnd = patientInfo$aberration$end.bp.hg19
 						aberType = patientInfo$aberration$type.of.aberration
 
-						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, 
-							colors = color.palette$aberrations[as.numeric(aberType)], labels = as.character(aberType),
-							maxRadius = 0.95, minRadius = 0.80)	
+						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95,
+							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80,
+							labels = paste(as.character(aberType), patient, sep="<br/>"))	
 					}
 				}
 
@@ -1761,7 +1761,7 @@ shinyServer <- function(input, output) {
 					g2names = patientInfo$fusion$GENE_B
 					ftype = patientInfo$fusion$TYPE_REARRANGEMENT
 					flabels = paste(g1names, g2names, sep = " - ")
-					flabels = paste(flabels, ftype, sep = "<br/>")
+					flabels = paste(flabels, ftype, patient, sep = "<br/>")
 
 					for(i in 1:length(levels(ftype))){ # Display one track per re-arrangement
 						currentLevel = levels(ftype)[i]
