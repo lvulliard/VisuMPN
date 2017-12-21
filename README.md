@@ -48,10 +48,6 @@ Implement aberration description plots, and patient-wise Circos plots.
 
 ### Gene expression exploration
 
-### Aberrations and fusions exploration
-
-* Correct display for single SNP on Circos plot
-
 ### Patient-specific data and differential splicing antigen summary
 
 ### Interface and texts
