@@ -5,7 +5,7 @@ library(plotly)
 library(RColorBrewer)
 library(heatmaply)
 library(stringr)
-library(chorddiag)
+library(BioCircos)
 
 # Define functions
 
@@ -19,8 +19,11 @@ library(chorddiag)
 color.palette = c()
 color.palette$main = "#40B9D4"
 color.palette$second = "#FFFFFF"
+color.palette$contrast = "#f8b100"
 color.palette$bg = "#FFFFFF"
+color.palette$function_mono = colorRampPalette(c(color.palette$main, "#000000"))
 color.palette$function_multi = colorRampPalette(brewer.pal(9, "Pastel1"))
+color.palette$function_multi_circos = "RdYlGn"
 # Bimodal color palette going from blue to white (rate x) then slowly to orange (rate x/10) 
 color.palette$function_bimod = colorRampPalette(c("#00bfff","#c1e8f1",colorRampPalette(c("#ffffff", "#ffd466", "#ffc533", "#f8b100"))(21) ))
 
@@ -58,7 +61,7 @@ dataCohort$age.years = as.numeric(round(dataCohort$age.days / 365.25))
 dataCohortTypes = data.frame(dataColNames = names(dataCohort), description = c("Unique Sample ID", "Sample ID", "Follow-up", "Batch",
 	"Diagnosis", "Genotype", "JAK2 mutant", "CALR mutant", "MPL mutant", "JAK2 burden", "CALR burden", "Date of birth", "Sex",
 	"RIN", "Bleeding date", "Extraction date", "Extraction method", "Date of diagnosis", "Date of diagnosis of blast phase",
-	"Date of death", "Hemoglobine level at diagnosis", "White blood cell level at diagnosis", "Platelet level at diagnosis",
+	"Date of death", "Hemoglobin level at diagnosis", "White blood cell level at diagnosis", "Platelet level at diagnosis",
 	"Thrombotic events after diagnosis", "Date of first thrombotic event after diagnosis", "Library type", "Read length",
 	"Percentage of mapping reads", "Mapped reads", "Set number", "PLEX number", "Index LSR1", "Flowcell number", "Patient ID",
 	"Age when diagnosed (in days)", "Age when diagnosed (in years)"), line = seq(length(dataCohort)), stringsAsFactors = FALSE)
@@ -162,12 +165,16 @@ dataAberrations = merge(x = dataAberrations, y = dataCohort[,names(dataCohort) %
 # Families of aberrations
 dataAberrations$family = as.factor(with(dataAberrations, paste0(chr, chr.arm, type.of.aberration)))
 
+subsetAberrations = dataAberrations[dataAberrations$type.of.aberration != "",]
+subsetAberrations$type.of.aberration = as.factor(subsetAberrations$type.of.aberration)
+color.palette$aberrations = brewer.pal(length(levels(subsetAberrations$type.of.aberration)), color.palette$function_multi_circos)
 
 # Load fusions
 dataFusions = read.table("rnaseq_fusions_only_validated.csv", 
 	sep = "\t", header=T, comment.char="", stringsAsFactors = FALSE)
 
-dataFusions
+dataFusions$TYPE_REARRANGEMENT = as.factor(dataFusions$TYPE_REARRANGMENT)
+color.palette$fusions = brewer.pal(length(levels(dataFusions$TYPE_REARRANGEMENT)), color.palette$function_multi_circos)
 
 # Define client UI
 shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="CeMM_logo.png", height = 30, width = 368), 
@@ -241,7 +248,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 						selectInput(inputId = "plotVariableX",
 							label = "Data on x-axis:",
 							choices = dataCohortTypes[quantitativeVar,2],
-							selected = "Hemoglobine level at diagnosis",
+							selected = "Hemoglobin level at diagnosis",
 							multiple = FALSE
 						),
 						selectInput(inputId = "plotVariableY",
@@ -708,17 +715,28 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 				id = "aberDisOcTabs"
 			)	
 		),
-		tabPanel(title = "Fusion - Patient summary",
+		tabPanel(title = "Sample summary and fusions",
 			sidebarPanel(
 				selectInput(inputId = "fusSumSample",
 							label = "Patient:",
 							choices = sort(dataCohort$unique.sample.id),
-							selected = 1,
+							selected = "P034A#B",
 							multiple = FALSE
 				)
 			),
-			mainPanel(textOutput("fusSumPrint")),
+			mainPanel(BioCircosOutput("fusSumCircos", height = 600)),
 			id = "fusSum"),
+		tabPanel(title = "Disease summary and fusions",
+			sidebarPanel(
+				selectInput(inputId = "fusSumDisease",
+							label = "Disease:",
+							choices = unique(unique(dataCohort$diagnosis)),
+							selected = "PV",
+							multiple = FALSE
+				)
+			),
+			mainPanel(BioCircosOutput("fusSumDisCircos", height = 600)),
+			id = "fusSumDis"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
 			dataTableOutput("aberTable"),
@@ -1392,26 +1410,29 @@ shinyServer <- function(input, output) {
 	# Variant per sample matrix
 	output$varBinMat <- renderPlotly({
 		dataset = filteredDataVariants()
+		dataset = dataset[order(dataset$diagnosis),]
 		# Sort samples by diagnosis then by mutational load
 		mutLoads = table(dataset$UNIQ_SAMPLE_ID)
 		dataset$mutLoad = sapply(dataset$UNIQ_SAMPLE_ID, function(x) -mutLoads[names(mutLoads) == x][[1]])
 		dataset$UNIQ_SAMPLE_ID = factor(dataset$UNIQ_SAMPLE_ID, levels = unique((dataset$UNIQ_SAMPLE_ID)[order(dataset$diagnosis, dataset$mutLoad)]))
 		# Sort gene symbols by frequency
 		dataset$GENESYMBOL = factor(dataset$GENESYMBOL, levels = names(sort(table(dataset$GENESYMBOL))))
-		dataset = dataset[order(dataset$diagnosis),]
-
-		gp1 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = GENESYMBOL, fill = CADD_phred, text = diagnosis)) + 
-			geom_raster() +
-			labs(x = "Sample ID", y = "Gene Symbol", caption = "Hover to get values") +
-			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
-		gpy1 = ggplotly(gp1) 
-		style(gpy1, hoverinfo = "text", hoverlabel = list(bgcolor = color.palette$bg))
 		
 		gp2 = ggplot(dataset, aes(x = UNIQ_SAMPLE_ID, y = 1, fill = diagnosis)) + geom_raster() +
 			labs(x = "Sample ID", y = "Diagnosis", caption = "Hover to get values") +
 			scale_fill_manual(guide = guide_legend(title = NULL), values = color.palette$function_multi(length(levels(dataset$diagnosis)))) +
 			theme(axis.text.x = element_blank(), axis.text.y = element_blank())
 		gpy2 = ggplotly(gp2)
+
+		varDF = with(dataset, as.data.frame.matrix(table(UNIQ_SAMPLE_ID, GENESYMBOL)))
+		varDF[varDF == 0] <- NA
+		varDF = t(varDF)
+		# Elements cannot be accessed by names. Columns 1, 2, 47 and 68 corresponds to
+		# UNIQ_SAMPLE_ID, GENESYMBOL, CADD_phred and diagnosis
+		apply(dataset, 1, function(x) varDF[rownames(varDF) == x[2], colnames(varDF) == x[1]] <<- as.numeric(x[47]))
+		gpy1 = heatmaply(varDF, na.rm = T, colors = color.palette$function_mono , show_grid = T,
+			dendrogram = "none", labRow = NA, labCol = NA,  key.title = "CADD PHRED-like C score",
+			grid_gap=2, label_names = c("Mutated_gene", "Sample", "CADD_score"), colorbar_len = 1)		
 
 		subplot(gpy1, gpy2, nrows = 2, shareX = T, shareY = T, heights = c(0.9,0.1))
 	})
@@ -1598,32 +1619,188 @@ shinyServer <- function(input, output) {
 	})
 
 	output$fusSum <- renderPlot({
-		fusGetAllInfoPatient()
+		fusGetAllInfoPatient(input$fusSumSample)
 	})
 
 	output$fusSumPrint <- renderPrint({
-		print(fusGetAllInfoPatient())
+		print(fusGetAllInfoPatient(input$fusSumSample))
 	})
 
-	fusGetAllInfoPatient <- reactive({
+	# Generate Circos plot for the selected patient
+	output$fusSumCircos <- renderBioCircos({
+		patientInfo = fusGetAllInfoPatient(input$fusSumSample)
+
+		tracks = BioCircosTextTrack("pname", patientInfo$clinical$unique.sample.id, x = -0.18, y = -0.18) # Display ID
+		
+		# Display SNPs with background, if any
+		if("variant" %in% names(patientInfo)){
+			varChr = patientInfo$variant$CHROM # Select all variants, even filtered
+			varPos = patientInfo$variant$POS
+			varFreq = patientInfo$variant$VARIANT_FREQUENCY
+			varGene = patientInfo$variant$GENESYMBOL
+
+			filteredVariants = with(filteredDataVariants(), paste(CHROM, POS))
+			varCol = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				color.palette$contrast, color.palette$main)))
+			varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+				"Kept", "Filtered")))
+
+			tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 3.5, range = c(1,0),
+				labels = paste(varGene, varLab, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
+			tracks = tracks + BioCircosBackgroundTrack("pvariantsBG", maxRadius = 0.75, minRadius = 0.5)	
+		}
+
+		# Display aberrations if any
+		if("aberration" %in% names(patientInfo)){
+			if(patientInfo$aberration$chr[1] != ""){
+				aberChr = patientInfo$aberration$chr
+				aberStart = patientInfo$aberration$start.bp.hg19
+				aberEnd = patientInfo$aberration$end.bp.hg19
+				aberType = patientInfo$aberration$type.of.aberration
+
+				tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, 
+					colors = color.palette$aberrations[as.numeric(aberType)], labels = as.character(aberType),
+					maxRadius = 0.95, minRadius = 0.80)
+				tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, 
+					fillColors = "#FFEEEE")			
+			}
+		}
+
+		# Display fusions if any
+		if("fusion" %in% names(patientInfo)){
+			g1pos = patientInfo$fusion$GENOMICBREAKPOINT_A
+			g2pos = patientInfo$fusion$GENOMICBREAKPOINT_B
+			g1chr = patientInfo$fusion$CHR_A
+			g2chr = patientInfo$fusion$CHR_B
+			g1names = patientInfo$fusion$GENE_A
+			g2names = patientInfo$fusion$GENE_B
+			ftype = patientInfo$fusion$TYPE_REARRANGEMENT
+			flabels = paste(g1names, g2names, sep = " - ")
+			flabels = paste(flabels, ftype, sep = "<br/>")
+
+			for(i in 1:length(levels(ftype))){ # Display one track per re-arrangement
+				currentLevel = levels(ftype)[i]
+				currentRows = which(ftype == currentLevel)
+
+				if(length(currentRows) > 0){ # If some fusions of this type needs to be displayed
+					tracks = tracks + BioCircosLinkTrack(paste0("pfusions", currentLevel), g1chr[currentRows], g1pos[currentRows],
+					g1pos[currentRows], g2chr[currentRows], g2pos[currentRows], g2pos[currentRows], labels = flabels[currentRows],
+					maxRadius = 0.45, width = "0.2em", gene1Names = g1names[currentRows], gene2Names = g2names[currentRows],
+					displayLabel = F, color = color.palette$fusions[i])
+				}
+			}
+				
+			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
+		}
+
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0, displayGenomeBorder = F, 
+			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
+			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
+			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
+	})
+
+	output$fusSumDisCircos <- renderBioCircos({
+		# Attempt to center disease name association based on nb of characters
+		text_x = -0.09*log(nchar(input$fusSumDisease),3) 
+		tracks = BioCircosTextTrack("dname", input$fusSumDisease, x = text_x, y = -0.85) # Display disease
+		
+		# Add background for the 3 layers
+		tracks = tracks + BioCircosBackgroundTrack("dvariantsBG", maxRadius = 0.75, minRadius = 0.5)	
+		tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.95, minRadius = 0.80, 
+			fillColors = "#FFEEEE")	
+		tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, 
+			fillColors = "#EEFFEE")
+
+		# Add tracks for all samples corresponding to the disease
+		for (patient in dataCohort$unique.sample.id){
+			patientInfo = fusGetAllInfoPatient(patient)
+
+			# If patient has the disease selected
+			if (patientInfo$clinical$diagnosis == input$fusSumDisease){
+
+				# Display SNPs, if any
+				if("variant" %in% names(patientInfo)){
+					varChr = patientInfo$variant$CHROM # Select all variants, even filtered
+					varPos = patientInfo$variant$POS
+					varFreq = patientInfo$variant$VARIANT_FREQUENCY
+					varGene = patientInfo$variant$GENESYMBOL
+
+					filteredVariants = with(filteredDataVariants(), paste(CHROM, POS))
+					varCol = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+						color.palette$contrast, color.palette$main)))
+					varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
+						"Kept", "Filtered")))
+
+					tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 2.5, range = c(1,0),
+						labels = paste(varGene, varLab, patient, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
+				}
+
+				# Display aberrations if any
+				if("aberration" %in% names(patientInfo)){
+					if(patientInfo$aberration$chr[1] != ""){
+						aberChr = patientInfo$aberration$chr
+						aberStart = patientInfo$aberration$start.bp.hg19
+						aberEnd = patientInfo$aberration$end.bp.hg19
+						aberType = patientInfo$aberration$type.of.aberration
+
+						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95,
+							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80,
+							labels = paste(as.character(aberType), patient, sep="<br/>"))	
+					}
+				}
+
+				# Display fusions if any
+				if("fusion" %in% names(patientInfo)){
+					g1pos = patientInfo$fusion$GENOMICBREAKPOINT_A
+					g2pos = patientInfo$fusion$GENOMICBREAKPOINT_B
+					g1chr = patientInfo$fusion$CHR_A
+					g2chr = patientInfo$fusion$CHR_B
+					g1names = patientInfo$fusion$GENE_A
+					g2names = patientInfo$fusion$GENE_B
+					ftype = patientInfo$fusion$TYPE_REARRANGEMENT
+					flabels = paste(g1names, g2names, sep = " - ")
+					flabels = paste(flabels, ftype, patient, sep = "<br/>")
+
+					for(i in 1:length(levels(ftype))){ # Display one track per re-arrangement
+						currentLevel = levels(ftype)[i]
+						currentRows = which(ftype == currentLevel)
+
+						if(length(currentRows) > 0){ # If some fusions of this type needs to be displayed
+							tracks = tracks + BioCircosLinkTrack(paste0("pfusions", currentLevel), g1chr[currentRows], g1pos[currentRows],
+							g1pos[currentRows], g2chr[currentRows], g2pos[currentRows], g2pos[currentRows], labels = flabels[currentRows],
+							maxRadius = 0.45, width = "0.2em", gene1Names = g1names[currentRows], gene2Names = g2names[currentRows],
+							displayLabel = F, color = color.palette$fusions[i])
+						}
+					}						
+				}
+			}
+		}
+
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0, displayGenomeBorder = F, 
+			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
+			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
+			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
+	})
+
+	# Return all info on the selected patient
+	fusGetAllInfoPatient <- function(patientID){
 		patientData = list()
-		patientData$clinical = dataCohort[dataCohort$unique.sample.id == input$fusSumSample,]
+		patientData$clinical = dataCohort[dataCohort$unique.sample.id == patientID,]
 			
-		if(input$fusSumSample %in% dataFusions$EXTERNAL_ID){
-			patientData$fusion = dataFusions[dataFusions$EXTERNAL_ID == input$fusSumSample,]
+		if(patientID %in% dataFusions$EXTERNAL_ID){
+			patientData$fusion = dataFusions[dataFusions$EXTERNAL_ID == patientID,]
 		}
 
 		if(patientData$clinical$sample.id.variant.file.format %in% dataVariants$UNIQ_SAMPLE_ID){
 			patientData$variant = dataVariants[dataVariants$UNIQ_SAMPLE_ID == patientData$clinical$sample.id.variant.file.format,]
 		}
 		
-		if(input$fusSumSample %in% dataAberrations$unique.sample.id){
-			patientData$aberration = dataAberrations[dataAberrations$unique.sample.id == input$fusSumSample,]
+		if(patientID %in% subsetAberrations$unique.sample.id){
+			patientData$aberration = subsetAberrations[subsetAberrations$unique.sample.id == patientID,]
 		}
 
 		return(patientData)
-	})
-
+	}
 }
 
 # Start Shiny app
