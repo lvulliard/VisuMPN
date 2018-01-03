@@ -1693,7 +1693,7 @@ shinyServer <- function(input, output) {
 			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
 		}
 
-		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0, displayGenomeBorder = F, 
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, displayGenomeBorder = F, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
 			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
 			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
@@ -1731,8 +1731,9 @@ shinyServer <- function(input, output) {
 					varLab = unname(sapply(paste(varChr, varPos), function(x) ifelse(x %in% filteredVariants, 
 						"Kept", "Filtered")))
 
-					tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 2.5, range = c(1,0),
-						labels = paste(varGene, varLab, patient, sep = "<br/>"), colors = varCol, maxRadius = 0.75, minRadius = 0.5)
+					tracks = tracks + BioCircosSNPTrack("pvariants", varChr, varPos, values = varFreq, size = 2.8, 
+						opacities = 0.4, range = c(1,0), labels = paste(varGene, varLab, patient, sep = "<br/>"), 
+						colors = varCol, maxRadius = 0.75, minRadius = 0.5)
 				}
 
 				# Display aberrations if any
@@ -1744,7 +1745,7 @@ shinyServer <- function(input, output) {
 						aberType = patientInfo$aberration$type.of.aberration
 
 						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95,
-							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80,
+							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80, opacities = 0.4,
 							labels = paste(as.character(aberType), patient, sep="<br/>"))	
 					}
 				}
@@ -1776,7 +1777,7 @@ shinyServer <- function(input, output) {
 			}
 		}
 
-		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0, displayGenomeBorder = F, 
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, displayGenomeBorder = F, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
 			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
 			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
