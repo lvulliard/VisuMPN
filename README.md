@@ -1,6 +1,9 @@
 # Myeloproliferative neoplasm patient cohort data visualization
 
-This web application allows the user to explore interactively data from a cohort of 113 myeloproliferative neoplasm (MPN) blood donors and 15 healthy blood controls.
+This web application allows the user to explore interactively data from a cohort of 113 myeloproliferative neoplasm (MPN) blood donors and 15 healthy blood controls.  
+To ensure that the dependencies are fulfilled, you can install the packages needed by running the install_dependencies.R script:
+
+	Rscript install_dependencies.R
 
 
 ## Features
@@ -34,6 +37,10 @@ Implement full CSS layout
 
 Implement aberration description plots, and patient-wise Circos plots.
 
+### v0.5
+
+Implement disease-wise Circos plots.
+
 
 ## To-do list
 
@@ -48,7 +55,7 @@ Implement aberration description plots, and patient-wise Circos plots.
 
 ### Gene expression exploration
 
-### Patient-specific data and differential splicing antigen summary
+### Differential splicing antigen summary
 
 ### Interface and texts
 
