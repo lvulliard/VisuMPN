@@ -1693,7 +1693,7 @@ shinyServer <- function(input, output) {
 			tracks = tracks + BioCircosBackgroundTrack("paberrationsBG", maxRadius = 0.45, minRadius = 0, fillColors = "#EEFFEE")
 		}
 
-		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, displayGenomeBorder = F, 
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, genomeBorderSize = 0.3, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
 			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
 			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
@@ -1777,7 +1777,7 @@ shinyServer <- function(input, output) {
 			}
 		}
 
-		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, displayGenomeBorder = F, 
+		BioCircos(tracks, genomeFillColor = color.palette$function_multi_circos, yChr = T, chrPad = 0.02, genomeBorderSize = 0.3, 
 			genomeTicksLen = 3, genomeTicksTextSize = 0, genomeTicksScale = 50000000,
 			genomeLabelTextSize = 18, genomeLabelDy = 0, SNPMouseOverTooltipsHtml03 = "<br/>Frequency: ",
 			SNPMouseOverTooltipsHtml04 = "<br/>Gene: ")
