@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(heatmaply)
 library(stringr)
 library(BioCircos)
+library(visNetwork)
 
 # Define functions
 
@@ -105,7 +106,8 @@ dataVariants$CADD_phred <- as.numeric(dataVariants$CADD_phred) # "." values are 
 dataVariants$SIFT_score <- as.numeric(dataVariants$SIFT_score)
 
 # Create subclasses of ET and PMF based on CALR and JAK2 mutations
-dataVariants$subdiagnosis <- paste(dataVariants$diagnosis, ifelse(dataVariants$jak2, "JAK2-mutated", "JAK2-wt"), ifelse(dataVariants$calr, "CALR-mutated", "CALR-wt"), sep = "-")
+dataVariants$subdiagnosis <- paste(dataVariants$diagnosis, ifelse(dataVariants$jak2, "JAK2-mutated", "JAK2-wt"), 
+	ifelse(dataVariants$calr, "CALR-mutated", "CALR-wt"), sep = "-")
 
 # Explanatory text displayed in variant heatmaps
 modalVarHeatmapText = HTML(paste0("The heatmaps display association between features through odds-ratios observed in the data.",
@@ -737,6 +739,18 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 			),
 			mainPanel(BioCircosOutput("fusSumDisCircos", height = 600)),
 			id = "fusSumDis"),
+		tabPanel(title = "Co-occurence network",
+			sidebarPanel(
+				selectInput(inputId = "sumNetVar",
+							label = "Co-occurences to include:",
+							choices = c("Between mutations", "Between mutations and diseases",
+								"Aberrations and diseases", "Aberrations and mutations"),
+							selected = "Between mutations",
+							multiple = TRUE
+				)
+			),
+			mainPanel(visNetworkOutput("sumNet", height = 600)),
+			id = "sumNetDis"),
 		tabPanel(title = "Aberrations - Data",
 			div(downloadButton('aberDL', 'Download'),style="float:right"),
 			dataTableOutput("aberTable"),
@@ -1802,6 +1816,50 @@ shinyServer <- function(input, output) {
 
 		return(patientData)
 	}
+
+	output$sumNet <- renderVisNetwork({
+		# c("Between mutations", "Between mutations and diseases", "Aberrations and diseases", "Aberrations and mutations")
+		# Initialization of nodes and edges. See below for corresponding column names.
+		nodes = data.frame()
+		edges = data.frame()
+
+		if ("Between mutations" %in% input$sumNetVar){
+			OR =  coOcOR()[[1]]
+			pval = coOcOR()[[2]]
+
+			nodes = rbind(nodes, data.frame(colnames(OR), 'M', paste("Mutation: ", colnames(OR))), stringsAsFactors=F)
+
+			for (i in 1:dim(OR)[1]){
+				for (j in 1:dim(OR)[2]){
+					# If the association is kept, and i<j (avoid to create link twice since the matrix is diagonal)
+					if((!is.na(OR[i,j]))&&(i<j)){
+						fromNode = rownames(OR[i,j, drop = FALSE])
+						toNode = colnames(OR[i,j, drop = FALSE])
+						# Color similar to heatmap: between linearly proportional to the odd-ratios, between 1 and 256 
+						colorLink = color.palette$function_bimod(256)[ceiling(256*min(OR[i,j]+0.001, 20)/20)]
+						labelLink = paste0(fromNode, " and ", toNode, "<br/>OR: ", OR[i,j], "<br/>Raw p-value:",
+							pval[rownames(pval) == fromNode, colnames(pval) == toNode])
+						edges = rbind(edges, c(fromNode, toNode, colorLink, labelLink), stringsAsFactors=F)
+						print(paste(OR[i,j], fromNode, toNode, colorLink, labelLink))
+					}
+				}
+			}
+			print(edges)
+		}
+
+		# Assign columns to nodes and edges properties
+		# id to define links, title displayed in tooltips, 
+		colnames(nodes) = c('id', 'group', 'title')
+		colnames(edges) = c('from', 'to', 'color', 'title')
+
+		visNetwork(nodes, edges, width = "100%") %>% 
+			visOptions(highlightNearest = TRUE) %>% # Hilight direct neighbours on click
+			# Define different colours and shapes for the different types of nodes
+			visGroups(groupname = "M", color = color.palette$function_multi(3)[1], shape = "diamond") %>% 
+			visGroups(groupname = "D", color = color.palette$function_multi(3)[2], shape = "circle") %>%  
+			visGroups(groupname = "A", color = color.palette$function_multi(3)[3], shape = "square") %>%   
+			visInteraction(navigationButtons = TRUE)
+	})
 }
 
 # Start Shiny app
