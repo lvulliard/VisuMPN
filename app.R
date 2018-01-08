@@ -744,7 +744,7 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 				selectInput(inputId = "sumNetVar",
 							label = "Co-occurences to include:",
 							choices = c("Between mutations", "Between mutations and diseases",
-								"Aberrations and diseases", "Aberrations and mutations"),
+								"Between aberrations and diseases", "Between aberrations and mutations"),
 							selected = "Between mutations",
 							multiple = TRUE
 				)
@@ -1818,7 +1818,6 @@ shinyServer <- function(input, output) {
 	}
 
 	output$sumNet <- renderVisNetwork({
-		# c("Between mutations", "Between mutations and diseases", "Aberrations and diseases", "Aberrations and mutations")
 		# Initialization of nodes and edges. See below for corresponding column names.
 		nodes = data.frame()
 		edges = data.frame()
@@ -1827,7 +1826,7 @@ shinyServer <- function(input, output) {
 			OR =  coOcOR()[[1]]
 			pval = coOcOR()[[2]]
 
-			nodes = rbind(nodes, data.frame(colnames(OR), 'M', paste("Mutation: ", colnames(OR))), stringsAsFactors=F)
+			nodes = rbind(nodes, data.frame(colnames(OR), 'M', paste("Mutation: ", colnames(OR)), stringsAsFactors=F), stringsAsFactors=F)
 
 			for (i in 1:dim(OR)[1]){
 				for (j in 1:dim(OR)[2]){
@@ -1840,11 +1839,111 @@ shinyServer <- function(input, output) {
 						labelLink = paste0(fromNode, " and ", toNode, "<br/>OR: ", OR[i,j], "<br/>Raw p-value:",
 							pval[rownames(pval) == fromNode, colnames(pval) == toNode])
 						edges = rbind(edges, c(fromNode, toNode, colorLink, labelLink), stringsAsFactors=F)
-						print(paste(OR[i,j], fromNode, toNode, colorLink, labelLink))
 					}
 				}
 			}
-			print(edges)
+		}
+
+		if ("Between mutations and diseases" %in% input$sumNetVar){
+			OR =  disOcOR()[[1]]
+			pval = disOcOR()[[2]]
+
+			for (mut in colnames(OR)){
+				if(!nrow(nodes)||(!(mut %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(mut, 'M', paste("Mutation: ", mut)), stringsAsFactors=F)
+				}
+			}
+
+			for (dis in rownames(OR)){
+				if(!nrow(nodes)||(!(dis %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(dis, 'D', paste("Disease: ", dis)), stringsAsFactors=F)
+				}
+			}
+			
+			for (i in 1:dim(OR)[1]){
+				for (j in 1:dim(OR)[2]){
+					# If the association is kept
+					if(!is.na(OR[i,j])){
+						fromNode = rownames(OR[i,j, drop = FALSE])
+						toNode = colnames(OR[i,j, drop = FALSE])
+						# Color similar to heatmap: between linearly proportional to the odd-ratios, between 1 and 256 
+						colorLink = color.palette$function_bimod(256)[ceiling(256*min(OR[i,j]+0.001, 20)/20)]
+						labelLink = paste0(fromNode, " and ", toNode, "<br/>OR: ", OR[i,j], "<br/>Corrected p-value:",
+						pval[i,j])
+						edges = rbind(edges, c(fromNode, toNode, colorLink, labelLink), stringsAsFactors=F)
+					}
+				}
+			}
+		}
+
+		if ("Between aberrations and diseases" %in% input$sumNetVar){
+			OR =  aberDisOcOR()[[1]]
+			pval = aberDisOcOR()[[2]]
+
+
+			for (dis in colnames(OR)){
+				if(!nrow(nodes)||(!(dis %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(dis, 'D', paste("Disease: ", dis)), stringsAsFactors=F)
+				}
+			}
+
+			for (abr in rownames(OR)){
+				if(!nrow(nodes)||(!(abr %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(abr, 'A', paste("Aberration: ", abr)), stringsAsFactors=F)
+				}
+			}
+			
+			for (i in 1:dim(OR)[1]){
+				for (j in 1:dim(OR)[2]){
+					# If the association is kept
+					if(!is.na(OR[i,j])){
+						fromNode = rownames(OR[i,j, drop = FALSE])
+						toNode = colnames(OR[i,j, drop = FALSE])
+						# Color similar to heatmap: between linearly proportional to the odd-ratios, between 1 and 256 
+						colorLink = color.palette$function_bimod(256)[ceiling(256*min(OR[i,j]+0.001, 20)/20)]
+						labelLink = paste0(fromNode, " and ", toNode, "<br/>OR: ", OR[i,j], "<br/>Corrected p-value:",
+						pval[i,j])
+						edges = rbind(edges, c(fromNode, toNode, colorLink, labelLink), stringsAsFactors=F)
+					}
+				}
+			}
+		}
+
+		if ("Between aberrations and mutations" %in% input$sumNetVar){
+			OR =  aberVarOcOR()[[1]]
+			pval = aberVarOcOR()[[2]]
+
+
+			for (mut in colnames(OR)){
+				if(!nrow(nodes)||(!(mut %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(mut, 'M', paste("Mutation: ", mut)), stringsAsFactors=F)
+				}
+			}
+
+			for (abr in rownames(OR)){
+				if(!nrow(nodes)||(!(abr %in% nodes[,1]))) { # If the node does not exist yet
+					nodes = rbind(nodes, c(abr, 'A', paste("Aberration: ", abr)), stringsAsFactors=F)
+				}
+			}
+			
+			for (i in 1:dim(OR)[1]){
+				for (j in 1:dim(OR)[2]){
+					# If the association is kept
+					if(!is.na(OR[i,j])){
+						fromNode = rownames(OR[i,j, drop = FALSE])
+						toNode = colnames(OR[i,j, drop = FALSE])
+						# Color similar to heatmap: between linearly proportional to the odd-ratios, between 1 and 256 
+						colorLink = color.palette$function_bimod(256)[ceiling(256*min(OR[i,j]+0.001, 20)/20)]
+						labelLink = paste0(fromNode, " and ", toNode, "<br/>OR: ", OR[i,j], "<br/>Corrected p-value:",
+						pval[i,j])
+						edges = rbind(edges, c(fromNode, toNode, colorLink, labelLink), stringsAsFactors=F)
+					}
+				}
+			}
+		}
+
+		if(!nrow(nodes)){ # Nothing to display
+			return()
 		}
 
 		# Assign columns to nodes and edges properties
@@ -1852,13 +1951,16 @@ shinyServer <- function(input, output) {
 		colnames(nodes) = c('id', 'group', 'title')
 		colnames(edges) = c('from', 'to', 'color', 'title')
 
+		print(nodes)
+		print(edges)
+
 		visNetwork(nodes, edges, width = "100%") %>% 
 			visOptions(highlightNearest = TRUE) %>% # Hilight direct neighbours on click
 			# Define different colours and shapes for the different types of nodes
 			visGroups(groupname = "M", color = color.palette$function_multi(3)[1], shape = "diamond") %>% 
 			visGroups(groupname = "D", color = color.palette$function_multi(3)[2], shape = "circle") %>%  
 			visGroups(groupname = "A", color = color.palette$function_multi(3)[3], shape = "square") %>%   
-			visInteraction(navigationButtons = TRUE)
+			visInteraction(navigationButtons = TRUE, multiselect = TRUE)
 	})
 }
 
