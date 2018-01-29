@@ -798,8 +798,7 @@ shinyServer <- function(input, output) {
 		dtX = variableInfo(input$plotVariableX)()
 		dtY = variableInfo(input$plotVariableY)()
 		if(input$plotVariableCol == "Nothing"){
-			gp1 = ggplot(dataCohort, aes(text = unique.sample.id) + aes_string(dtX[[1]], dtY[[1]])) + geom_point(color = color.palette$main) + 
-				xlab(dtX[[2]]) + ylab(dtY[[2]])
+			
 		}
 		else{
 			dtC = variableInfo(input$plotVariableCol)()
@@ -1758,8 +1757,11 @@ shinyServer <- function(input, output) {
 						aberEnd = patientInfo$aberration$end.bp.hg19
 						aberType = patientInfo$aberration$type.of.aberration
 
-						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.95,
-							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80, opacities = 0.4,
+						# Jitter arcs by up to 5% of plot radius, to visually discriminate patients more easily
+						r = 0.05*runif(1)
+
+						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.90+r,
+							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80+r, opacities = 0.4,
 							labels = paste(as.character(aberType), patient, sep="<br/>"))	
 					}
 				}
