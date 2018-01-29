@@ -735,6 +735,23 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 							choices = unique(unique(dataCohort$diagnosis)),
 							selected = "PV",
 							multiple = FALSE
+				),
+				bsCollapse(
+					bsCollapsePanel("Graphical parameters",
+						sliderInput(inputId = "cirOpacity",
+							label = "Arc opacity:",
+							min = 0,
+							max = 1, 
+							value = 0.4
+						), 
+						sliderInput(inputId = "cirJitter",
+							label = "Arc jittering (%):",
+							min = 0,
+							max = 50, 
+							value = 10
+						),
+						style = "info"
+					)
 				)
 			),
 			mainPanel(BioCircosOutput("fusSumDisCircos", height = 600)),
@@ -1757,11 +1774,12 @@ shinyServer <- function(input, output) {
 						aberEnd = patientInfo$aberration$end.bp.hg19
 						aberType = patientInfo$aberration$type.of.aberration
 
-						# Jitter arcs by up to 5% of plot radius, to visually discriminate patients more easily
-						r = 0.05*runif(1)
+						# Jitter arcs by user-defined amount, to visually discriminate patients more easily
+						r = 0.15*0.01*input$cirJitter*runif(1)
 
-						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, maxRadius = 0.90+r,
-							colors = color.palette$aberrations[as.numeric(aberType)], minRadius = 0.80+r, opacities = 0.4,
+						tracks = tracks + BioCircosArcTrack("paberrations", aberChr, aberStart, aberEnd, 
+							opacities = input$cirOpacity, colors = color.palette$aberrations[as.numeric(aberType)], 
+							minRadius = 0.80+r, maxRadius = 0.95 - 0.15*0.01*input$cirJitter+r,
 							labels = paste(as.character(aberType), patient, sep="<br/>"))	
 					}
 				}
