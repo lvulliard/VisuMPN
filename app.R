@@ -726,7 +726,25 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 							multiple = FALSE
 				)
 			),
-			mainPanel(BioCircosOutput("fusSumCircos", height = 600)),
+			mainPanel(
+				bsModal("modalFusSumCircos", "Sample summary", "modalFusSumCircosLink", size = "large",
+					HTML(paste0("This figure displays all genomic events observed for a given sample.<br/>",
+						"The outermost track represents each of the chromosome pairs for the sample.<br/>",
+						"The following track (pale red background) represents the genomic aberrations as arcs.<br/>",
+						"Then the next track (pale blue background) represents the variants called. The radius ",
+						"of each variant corresponds to its frequency (the further away from the center, the more ",
+						"frequent).<br/>Finally, the innermost track (green background) displays gene fusions, by ",
+						"showing the two positions fused.<br/>Aberrations and fusions are color-coded by type, and ",
+						"variants are colored based on whether they are filtered or not, according to the filtering rules ",
+						"set in the \"Explore the variants\" tab.<br/>Hover on an element with your mouse to display ",
+						"details. Empty tracks are not shown.<br/><br/>WARNING: this visualization may not be displayed ",
+						"properly in old browsers. If nothing shows up here, please try again with an up-to-date ",
+						"version of Mozilla Firefox or Chrome.")) 
+				), # Information pop-up
+				div(bsButton("modalFusSumCircosLink", label = " More info", icon = icon("info-circle")),
+					style="float:right"),
+				BioCircosOutput("fusSumCircos", height = 600)
+			),
 			id = "fusSum"),
 		tabPanel(title = "Disease summary and fusions",
 			sidebarPanel(
@@ -754,7 +772,27 @@ shinyUi <- navbarPage(title = div(a("MPN cohort data visualization", img(src="Ce
 					)
 				)
 			),
-			mainPanel(BioCircosOutput("fusSumDisCircos", height = 600)),
+			mainPanel(
+				bsModal("modalFusSumDisCircos", "Sample summary", "modalFusSumDisCircosLink", size = "large",
+					HTML(paste0("This figure displays all genomic events compiled for a given disease.<br/>",
+						"The outermost track represents each of the chromosome pairs.<br/>",
+						"The following track (pale red background) represents the genomic aberrations as arcs, that ",
+						"can be radially shifted to discriminate the different samples they are associated with (see",
+						"\"Graphical parameters\").<br/>",
+						"Then the next track (pale blue background) represents the variants called. The radius ",
+						"of each variant corresponds to its frequency (the further away from the center, the more ",
+						"frequent).<br/>Finally, the innermost track (green background) displays gene fusions, by ",
+						"showing the two positions fused.<br/>Aberrations and fusions are color-coded by type, and ",
+						"variants are colored based on whether they are filtered or not, according to the filtering rules ",
+						"set in the \"Explore the variants\" tab. Hover on an element with your mouse to display ",
+						"details.<br/><br/>WARNING: this visualization may not be displayed ",
+						"properly in old browsers. If nothing shows up here, please try again with an up-to-date ",
+						"version of Mozilla Firefox or Chrome.")) 
+				), # Information pop-up
+				div(bsButton("modalFusSumDisCircosLink", label = " More info", icon = icon("info-circle")),
+					style="float:right"),
+				BioCircosOutput("fusSumDisCircos", height = 600)
+			),
 			id = "fusSumDis"),
 		tabPanel(title = "Co-occurence network",
 			sidebarPanel(
@@ -1970,9 +2008,6 @@ shinyServer <- function(input, output) {
 		# id to define links, title displayed in tooltips, 
 		colnames(nodes) = c('id', 'group', 'title')
 		colnames(edges) = c('from', 'to', 'color', 'title')
-
-		print(nodes)
-		print(edges)
 
 		visNetwork(nodes, edges, width = "100%") %>% 
 			visOptions(highlightNearest = TRUE) %>% # Hilight direct neighbours on click
