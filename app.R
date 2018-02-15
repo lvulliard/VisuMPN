@@ -853,7 +853,8 @@ shinyServer <- function(input, output) {
 		dtX = variableInfo(input$plotVariableX)()
 		dtY = variableInfo(input$plotVariableY)()
 		if(input$plotVariableCol == "Nothing"){
-			
+			gp1 = ggplot(dataCohort, aes(text = unique.sample.id) + aes_string(dtX[[1]], dtY[[1]])) + geom_point(color = color.palette$main) + 
+				xlab(dtX[[2]]) + ylab(dtY[[2]])
 		}
 		else{
 			dtC = variableInfo(input$plotVariableCol)()
